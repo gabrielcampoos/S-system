@@ -1,4 +1,4 @@
-import { Hole } from './Hole';
+import { HoleDto } from './Hole';
 import { HoleState } from './HoleState';
 import { Project } from './Project';
 import { ProjectState } from './ProjectState';
@@ -38,7 +38,7 @@ export interface ResponseListProjectsDto {
 export interface ResponseListHolesDto {
 	success: boolean;
 	message: string;
-	data?: Hole;
+	data?: HoleDto;
 }
 
 export interface ResponseEditUserDto {
@@ -74,5 +74,5 @@ export interface ResponseDeleteProjectDto {
 export interface ResponseDeleteHoleDto {
 	success: boolean;
 	message: string;
-	data?: Hole[];
+	data?: HoleDto[];
 }
