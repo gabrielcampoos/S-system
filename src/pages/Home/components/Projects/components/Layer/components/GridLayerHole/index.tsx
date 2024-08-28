@@ -1,6 +1,7 @@
 import { Box, Button, Grid, TextField } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useAppSelector } from '../../../../../../../../store/hooks';
+import FileUpload from '../FileUpload';
 
 interface GridLayerHoleProps {
 	closeLayerHole: () => void;
@@ -18,6 +19,7 @@ export const GridLayerHole = ({ closeLayerHole }: GridLayerHoleProps) => {
 	const [hatch, setHatch] = useState<string[]>([]);
 	const [description, setDescription] = useState<string[]>([]);
 	const [layer, setLayer] = useState<string[]>([]);
+	const [hachura, setHachura] = useState('');
 
 	useEffect(() => {
 		const storedValues = localStorage.getItem('names');
@@ -54,7 +56,19 @@ export const GridLayerHole = ({ closeLayerHole }: GridLayerHoleProps) => {
 			const parsedLayer = JSON.parse(storedLayer);
 			setLayerValue(parsedLayer);
 		}
-	}, []);
+
+		if (typeValue === '1') {
+			setDescriptionValue('AREIA');
+		} else if (typeValue === '2') {
+			setDescriptionValue('SILTE');
+		} else if (typeValue === '3') {
+			setDescriptionValue('ARGILA');
+		} else if (typeValue === '4') {
+			setDescriptionValue('ROCHA');
+		} else {
+			setDescriptionValue('Descrição');
+		}
+	}, [descriptionValue, typeValue]);
 
 	const handleConfirm = () => {
 		const updatedTypes = [...types];
@@ -64,13 +78,18 @@ export const GridLayerHole = ({ closeLayerHole }: GridLayerHoleProps) => {
 		localStorage.setItem('types', JSON.stringify(updatedTypes));
 
 		const updatedHatch = [...hatch];
-		if (currentIndex < updatedHatch.length) {
-			updatedHatch[currentIndex] = hatchValue;
-		} else {
-			updatedHatch.push(hatchValue);
-		}
+		updatedHatch[currentIndex] = hatchValue;
 		setHatch(updatedHatch);
 		localStorage.setItem('hatch', JSON.stringify(updatedHatch));
+
+		// const updatedHatch = [...hatch];
+		// if (currentIndex < updatedHatch.length) {
+		// 	updatedHatch[currentIndex] = hatchValue;
+		// } else {
+		// 	updatedHatch.push(hatchValue);
+		// }
+		// setHatch(updatedHatch);
+		// localStorage.setItem('hatch', JSON.stringify(updatedHatch));
 
 		const updatedDescription = [...description];
 		if (currentIndex < updatedDescription.length) {
@@ -89,6 +108,8 @@ export const GridLayerHole = ({ closeLayerHole }: GridLayerHoleProps) => {
 		}
 		setLayer(updatedLayer);
 		localStorage.setItem('layer', JSON.stringify(updatedLayer));
+
+		closeLayerHole();
 	};
 	return (
 		<Box
@@ -241,7 +262,17 @@ export const GridLayerHole = ({ closeLayerHole }: GridLayerHoleProps) => {
 					}}
 				>
 					<TextField
-						label="Descrição"
+						label={
+							typeValue === '1'
+								? 'AREIA'
+								: typeValue === '2'
+									? 'SILTE'
+									: typeValue === '3'
+										? 'ARGILA'
+										: typeValue === '4'
+											? 'ROCHA'
+											: 'Descrição'
+						}
 						size="small"
 						sx={{
 							flex: 1,
@@ -274,6 +305,7 @@ export const GridLayerHole = ({ closeLayerHole }: GridLayerHoleProps) => {
 						value={hatchValue}
 						onChange={(e) => setHatchValue(e.target.value)}
 					/>
+					<FileUpload hatch={hatchValue} setHatch={setHatchValue} />
 				</Grid>
 
 				<Grid

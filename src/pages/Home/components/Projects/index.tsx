@@ -8,6 +8,8 @@ import {
 	projectDelete,
 	projectEdit,
 } from '../../../../store/modules/Project/projectAdapter';
+import jsPDF from 'jspdf';
+import backgroundImage from '../../../../assets/images/pdf.png';
 
 export const Projects = () => {
 	const [displayPoll, setDisplayPoll] = useState('none');
@@ -78,6 +80,19 @@ export const Projects = () => {
 			setFinalDate('');
 			setHeaderText('');
 		}, 3000);
+	};
+
+	//Gerar PDF
+	const generatePDF = () => {
+		const doc = new jsPDF();
+
+		const img = new Image();
+		img.src = backgroundImage;
+		img.onload = () => {
+			doc.addImage(img, 'PNG', 0, 0, 210, 297);
+
+			doc.save('output.pdf');
+		};
 	};
 
 	return (
@@ -227,6 +242,10 @@ export const Projects = () => {
 					close={handleClose}
 				/>
 			</Box>
+
+			<Button color="error" variant="contained" onClick={generatePDF}>
+				Gerar PDF
+			</Button>
 		</>
 	);
 };

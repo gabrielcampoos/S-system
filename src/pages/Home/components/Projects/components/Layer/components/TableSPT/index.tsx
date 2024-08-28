@@ -216,7 +216,11 @@ function createData(
 	};
 }
 
-export default function TableSPT() {
+interface TableSPTProps {
+	close: () => void;
+}
+
+export default function TableSPT({ close }: TableSPTProps) {
 	const [profundidade, setProfundidade] = React.useState<number>(0);
 	const [spt, setSpt] = React.useState<number>(0);
 	const [golpes1, setGolpes1] = React.useState<number>(0);
@@ -259,6 +263,7 @@ export default function TableSPT() {
 		setProfundidade2(15);
 		setGolpes3(0);
 		setProfundidade3(15);
+		close();
 	};
 
 	return (

@@ -63,7 +63,7 @@ export default function GridSPT({ open, setOpen }: GridSPTProps) {
 						</Button>
 					</Toolbar>
 				</AppBar>
-				<TableSPT />
+				<TableSPT close={handleClose} />
 			</Dialog>
 		</React.Fragment>
 	);

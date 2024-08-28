@@ -318,8 +318,6 @@ interface TableRow {
 	Profundidade3: number;
 }
 
-const listLayer: string[] = [];
-
 export const Layer = () => {
 	const [open, setOpen] = useState(false);
 	const [openResistence, setOpenResistence] = useState(false);

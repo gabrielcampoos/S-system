@@ -4,9 +4,11 @@ import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { Project } from '../../../../store/types/Project';
 import { createProject } from '../../../../store/modules/Project/projectSlice';
 import {
+	listAllProjects,
 	projectDelete,
 	projectEdit,
 } from '../../../../store/modules/Project/projectAdapter';
+import MultipleSelect from './components/SelectClient';
 
 interface PollProps {
 	close: () => void;
@@ -51,69 +53,101 @@ export const Poll = ({
 	headerText,
 	setHeaderText,
 }: PollProps) => {
+	const [personName, setPersonName] = useState<string[]>([]);
+
 	const projectStatus = useAppSelector((state) => state.project.project.id);
 
+	const projectLength = useAppSelector(listAllProjects);
+
 	const dispatch = useAppDispatch();
+
+	useEffect(() => {
+		const today = new Date().toISOString().split('T')[0];
+		if (!releaseDate) setReleaseDate(today);
+		if (!initialDate) setInitialDate(today);
+		if (!finalDate) setFinalDate(today);
+	}, [
+		releaseDate,
+		initialDate,
+		finalDate,
+		setReleaseDate,
+		setInitialDate,
+		setFinalDate,
+	]);
+
+	useEffect(() => {
+		setClient(personName.join(', '));
+	}, [personName, setClient]);
 
 	const handleCreateProject = (ev: React.FormEvent<HTMLFormElement>) => {
 		ev.preventDefault();
 
-		dispatch(
-			createProject({
-				projectNumber: projectNumber,
-				client: client,
-				projectAlphanumericNumber: projectAlphanumericNumber,
-				workDescription: workDescription,
-				workSite: workSite,
-				releaseDate: releaseDate,
-				initialDate: initialDate,
-				finalDate: finalDate,
-				headerText: headerText,
-			}),
-		);
+		if (releaseDate && initialDate && finalDate) {
+			dispatch(
+				createProject({
+					projectNumber: String(projectLength.length + 1),
+					client: client,
+					projectAlphanumericNumber: projectAlphanumericNumber,
+					workDescription: workDescription,
+					workSite: workSite,
+					releaseDate: releaseDate,
+					initialDate: initialDate,
+					finalDate: finalDate,
+					headerText: headerText,
+				}),
+			);
+			localStorage.setItem('workDescription', workDescription);
 
-		setTimeout(() => {
-			setProjectNumber('');
-			setClient('');
-			setProjectAlphanumericNumber('');
-			setWorkDescription('');
-			setWorkSite('');
-			setReleaseDate('');
-			setInitialDate('');
-			setFinalDate('');
-			setHeaderText('');
-		}, 3000);
+			setTimeout(() => {
+				setProjectNumber('');
+				setClient('');
+				setProjectAlphanumericNumber('');
+				setWorkDescription('');
+				setWorkSite('');
+				setReleaseDate('');
+				setInitialDate('');
+				setFinalDate('');
+				setHeaderText('');
+				close();
+			}, 3000);
+		} else {
+			console.error('As datas não foram definidas corretamente.');
+		}
 	};
 
 	const handleEditProject = (ev: React.FormEvent<HTMLFormElement>) => {
 		ev.preventDefault();
 
-		dispatch(
-			projectEdit({
-				id: projectStatus,
-				projectNumber: projectNumber,
-				client: client,
-				projectAlphanumericNumber: projectAlphanumericNumber,
-				workDescription: workDescription,
-				workSite: workSite,
-				releaseDate: releaseDate,
-				initialDate: initialDate,
-				finalDate: finalDate,
-				headerText: headerText,
-			}),
-		);
+		if (releaseDate && initialDate && finalDate) {
+			dispatch(
+				projectEdit({
+					id: projectStatus,
+					projectNumber: projectNumber,
+					client: client,
+					projectAlphanumericNumber: projectAlphanumericNumber,
+					workDescription: workDescription,
+					workSite: workSite,
+					releaseDate: releaseDate,
+					initialDate: initialDate,
+					finalDate: finalDate,
+					headerText: headerText,
+				}),
+			);
 
-		setTimeout(() => {
-			setProjectNumber('');
-			setClient('');
-			setProjectAlphanumericNumber('');
-			setWorkDescription('');
-			setWorkSite('');
-			setReleaseDate('');
-			setInitialDate('');
-			setFinalDate('');
-			setHeaderText('');
-		}, 3000);
+			setTimeout(() => {
+				setProjectNumber('');
+				setClient('');
+				setProjectAlphanumericNumber('');
+				setWorkDescription('');
+				setWorkSite('');
+				setReleaseDate('');
+				setInitialDate('');
+				setFinalDate('');
+				setHeaderText('');
+			}, 3000);
+		} else {
+			console.error('As datas não foram definidas corretamente.');
+		}
 	};
 
 	return (
@@ -159,27 +193,31 @@ export const Poll = ({
 						sx={{
 							flex: 0.1,
 						}}
-						onChange={(event) =>
-							setProjectNumber(event.currentTarget.value)
-						}
-						value={projectNumber}
+						value={String(projectLength.length + 1)}
 					/>
-					<TextField
-						label="Cliente"
-						size="small"
-						sx={{
-							flex: 0.1,
-						}}
-						onChange={(event) =>
-							setClient(event.currentTarget.value)
-						}
-						value={client}
+
+					<MultipleSelect
+						personName={personName}
+						setPersonName={setPersonName}
 					/>
+				</Box>
+
+				<Box
+					sx={{
+						width: '100%',
+						display: 'flex',
+						justifyContent: 'center',
+						alignItems: 'center',
+						pt: 2,
+						pb: 2,
+					}}
+				>
 					<TextField
 						label="Número Projeto Alfanumérico"
 						size="small"
 						sx={{
 							flex: 0.2,
+							right: 276,
 						}}
 						onChange={(event) =>
 							setProjectAlphanumericNumber(
@@ -222,7 +260,6 @@ export const Poll = ({
 					/>
 
 					<TextField
-						label="Data de Lançamento"
 						size="small"
 						type="date"
 						sx={{
@@ -231,7 +268,7 @@ export const Poll = ({
 						onChange={(event) =>
 							setReleaseDate(event.currentTarget.value)
 						}
-						value={releaseDate}
+						value={releaseDate || ''}
 					/>
 
 					<TextField
@@ -244,7 +281,7 @@ export const Poll = ({
 						onChange={(event) =>
 							setInitialDate(event.currentTarget.value)
 						}
-						value={initialDate}
+						value={initialDate || ''}
 					/>
 
 					<TextField
@@ -257,7 +294,7 @@ export const Poll = ({
 						onChange={(event) =>
 							setFinalDate(event.currentTarget.value)
 						}
-						value={finalDate}
+						value={finalDate || ''}
 					/>
 
 					<TextField
@@ -281,11 +318,7 @@ export const Poll = ({
 							alignItems: 'center',
 						}}
 					>
-						<Button
-							variant="contained"
-							type="submit"
-							onClick={() => localStorage.clear()}
-						>
+						<Button variant="contained" type="submit">
 							{localStorage.getItem('edit')
 								? 'Atualizar'
 								: 'Confirmar'}
@@ -294,7 +327,6 @@ export const Poll = ({
 							variant="contained"
 							onClick={() => {
 								close();
-								localStorage.clear();
 							}}
 						>
 							Cancelar

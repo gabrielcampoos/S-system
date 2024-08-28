@@ -1,11 +1,12 @@
 import { Box, Button, Grid, TextField } from '@mui/material';
+import { useEffect, useState } from 'react';
+
+import { useAppDispatch } from '../../../../../../../../store/hooks';
 import {
 	createHole,
 	editHole,
 } from '../../../../../../../../store/modules/Hole/holeSlice';
-import { useAppDispatch } from '../../../../../../../../store/hooks';
 import { HoleDto, Project } from '../../../../../../../../store/types';
-import { useEffect, useState } from 'react';
 
 interface GridHoleProps {
 	close: () => void;
@@ -94,109 +95,98 @@ export const GridHole = ({
 	pageLines,
 	setPageLines,
 }: GridHoleProps) => {
+	useEffect(() => {
+		const workDescription = localStorage.getItem('workDescription');
+
+		if (workDescription) {
+			setWorkDescription(workDescription!);
+		}
+		const today = new Date().toISOString().split('T')[0];
+		if (!initialDate) setInitialDate(today);
+		if (!finalDate) setFinalDate(today);
+
+		if (textPoll === '2') {
+			setTextPoll('Sondagem Limitada');
+		}
+
+		if (textPoll === '1') {
+			setTextPoll('Limite da Sondagem');
+		}
+	}, [
+		initialDate,
+		finalDate,
+		setInitialDate,
+		setFinalDate,
+		setWorkDescription,
+		textPoll,
+		setTextPoll,
+	]);
+
 	const dispatch = useAppDispatch();
 
-	const handleCreateHole = (ev: React.FormEvent<HTMLFormElement>) => {
+	const handleCreateOrUpdateHole = (ev: React.FormEvent<HTMLFormElement>) => {
 		ev.preventDefault();
 
-		dispatch(
-			createHole({
-				holeNumber: holeNumber,
-				initialDate: initialDate,
-				finalDate: finalDate,
-				name: name,
-				workDescription: workDescription,
-				quota: quota,
-				waterLevel: waterLevel,
-				interval: interval,
-				waterLevelTwo: waterLevelTwo,
-				intervalTwo: intervalTwo,
-				torque: torque,
-				coating: coating,
-				ultimateDigger: ultimateDigger,
-				initialHelical: initialHelical,
-				finalHelical: finalHelical,
-				printSpt: printSpt,
-				stop: stop,
-				textPoll: textPoll,
-				prober: prober,
-				pageLines: pageLines,
-			}),
-		);
+		localStorage.setItem('workDescription', workDescription);
 
-		setHoleNumber(''),
-			setInitialDate(''),
-			setFinalDate(''),
-			setName(''),
-			setWorkDescription(''),
-			setQuota(''),
-			setWaterLevel(''),
-			setInterval(''),
-			setWaterLevelTwo(''),
-			setIntervalTwo(''),
-			setTorque(''),
-			setCoating(''),
-			setUltimateDigger(''),
-			setInitialHelical(''),
-			setFinalHelical(''),
-			setPrintSpt(''),
-			setStop(''),
-			setTextPoll(''),
-			setProber(''),
-			setPageLines('');
+		if (initialDate && finalDate) {
+			const holeData = {
+				holeNumber,
+				initialDate,
+				finalDate,
+				name,
+				workDescription,
+				quota,
+				waterLevel,
+				interval,
+				waterLevelTwo,
+				intervalTwo,
+				torque,
+				coating,
+				ultimateDigger,
+				initialHelical,
+				finalHelical,
+				printSpt,
+				stop,
+				textPoll,
+				prober,
+				pageLines,
+			};
+
+			if (localStorage.getItem('edit')) {
+				dispatch(
+					editHole({
+						id: localStorage.getItem('edit')!,
+						...holeData,
+					}),
+				);
+			} else {
+				dispatch(createHole(holeData));
+			}
+		}
+
+		setHoleNumber('');
+		setInitialDate('');
+		setFinalDate('');
+		setName('');
+		setWorkDescription('');
+		setQuota('');
+		setWaterLevel('');
+		setInterval('');
+		setWaterLevelTwo('');
+		setIntervalTwo('');
+		setTorque('');
+		setCoating('');
+		setUltimateDigger('');
+		setInitialHelical('');
+		setFinalHelical('');
+		setPrintSpt('');
+		setStop('');
+		setTextPoll('');
+		setProber('');
+		setPageLines('');
+		close();
 	};
-
-	const handleEditHole = (ev: React.FormEvent<HTMLFormElement>) => {
-		ev.preventDefault();
-
-		dispatch(
-			editHole({
-				id: localStorage.getItem('edit')!,
-				holeNumber: holeNumber,
-				initialDate: initialDate,
-				finalDate: finalDate,
-				name: name,
-				workDescription: workDescription,
-				quota: quota,
-				waterLevel: waterLevel,
-				interval: interval,
-				waterLevelTwo: waterLevelTwo,
-				intervalTwo: intervalTwo,
-				torque: torque,
-				coating: coating,
-				ultimateDigger: ultimateDigger,
-				initialHelical: initialHelical,
-				finalHelical: finalHelical,
-				printSpt: printSpt,
-				stop: stop,
-				textPoll: textPoll,
-				prober: prober,
-				pageLines: pageLines,
-			}),
-		);
-
-		setHoleNumber(''),
-			setInitialDate(''),
-			setFinalDate(''),
-			setName(''),
-			setWorkDescription(''),
-			setQuota(''),
-			setWaterLevel(''),
-			setInterval(''),
-			setWaterLevelTwo(''),
-			setIntervalTwo(''),
-			setTorque(''),
-			setCoating(''),
-			setUltimateDigger(''),
-			setInitialHelical(''),
-			setFinalHelical(''),
-			setPrintSpt(''),
-			setStop(''),
-			setTextPoll(''),
-			setProber(''),
-			setPageLines('');
-	};
-
 	const [names, setNames] = useState<string[]>(() => {
 		const savedNames = localStorage.getItem('names');
 		if (savedNames) {
@@ -218,9 +208,7 @@ export const GridHole = ({
 	return (
 		<Box
 			component="form"
-			onSubmit={
-				localStorage.getItem('edit') ? handleEditHole : handleCreateHole
-			}
+			onSubmit={handleCreateOrUpdateHole}
 			sx={{
 				width: '100%',
 				display: 'flex',
@@ -365,7 +353,7 @@ export const GridHole = ({
 							mr: 2,
 						}}
 						onChange={(event) => setInterval(event.target.value)}
-						value={interval}
+						value={`${interval} min.`}
 					/>
 
 					<TextField
@@ -388,7 +376,7 @@ export const GridHole = ({
 							mr: 2,
 						}}
 						onChange={(event) => setIntervalTwo(event.target.value)}
-						value={intervalTwo}
+						value={`${intervalTwo} hrs.`}
 					/>
 
 					<TextField
@@ -495,7 +483,7 @@ export const GridHole = ({
 					}}
 				>
 					<TextField
-						label="Parada"
+						label="Parada (1 / 2)"
 						size="small"
 						sx={{
 							flex: 1,
@@ -520,7 +508,11 @@ export const GridHole = ({
 					}}
 				>
 					<TextField
-						label="Texto do Limite da Sondagem"
+						label={
+							textPoll === 'Limite da Sondagem'
+								? 'Alterar para Sondagem Limitada - 2'
+								: 'Alterar para Limite da Sondagem - 1'
+						}
 						size="small"
 						sx={{
 							flex: 1,
