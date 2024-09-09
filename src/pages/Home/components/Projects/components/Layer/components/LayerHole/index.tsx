@@ -14,6 +14,8 @@ import { GridLayerHole } from '../GridLayerHole';
 interface LayerHoleProps {
 	openLayerHole: boolean;
 	setOpenLayerHole: React.Dispatch<React.SetStateAction<boolean>>;
+	hatch: string;
+	setHatch: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const Transition = React.forwardRef(function Transition(
@@ -28,7 +30,11 @@ const Transition = React.forwardRef(function Transition(
 export default function LayerHole({
 	openLayerHole,
 	setOpenLayerHole,
+	hatch,
+	setHatch,
 }: LayerHoleProps) {
+	const [layerIndex, setLayerIndex] = React.useState<number>(0);
+
 	const handleClose = () => {
 		setOpenLayerHole(false);
 	};
@@ -60,7 +66,13 @@ export default function LayerHole({
 						</Typography>
 					</Toolbar>
 				</AppBar>
-				<GridLayerHole closeLayerHole={handleClose} />
+				<GridLayerHole
+					closeLayerHole={handleClose}
+					layerIndex={layerIndex}
+					setLayerIndex={setLayerIndex}
+					hatch={hatch}
+					setHatch={setHatch}
+				/>
 			</Dialog>
 		</React.Fragment>
 	);

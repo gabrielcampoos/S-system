@@ -5,8 +5,9 @@ import {
 	listAllUsers,
 	userList,
 } from '../../../../../../store/modules/User/userAdapter';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { getUser } from '../../../../../../store/modules/User/userSlice';
+import { listProjects } from '../../../../../../store/modules/Project/projectSlice';
 
 interface ListProps {
 	isChecked: boolean;
@@ -14,25 +15,34 @@ interface ListProps {
 }
 
 export const List = ({ isChecked, setIsChecked }: ListProps) => {
+	const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+
 	const selectUser = useAppSelector(listAllUsers);
 
 	const dispatch = useAppDispatch();
 
-	const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		setIsChecked(event.target.checked);
+	const handleChange =
+		(id: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
+			const checked = event.target.checked;
 
-		localStorage.clear();
-	};
+			if (checked) {
+				setSelectedUserId(id);
+			} else {
+				setSelectedUserId(null);
+			}
+
+			localStorage.clear();
+		};
 
 	useEffect(() => {
 		dispatch(userList());
 	}, [dispatch]);
 
 	useEffect(() => {
-		if (isChecked === true) {
-			dispatch(getUser());
+		if (selectedUserId) {
+			dispatch(getUser(selectedUserId));
 		}
-	}, [isChecked, setIsChecked]);
+	}, [selectedUserId, dispatch]);
 
 	return (
 		<Box
@@ -45,9 +55,9 @@ export const List = ({ isChecked, setIsChecked }: ListProps) => {
 				flexDirection: 'column',
 			}}
 		>
-			{selectUser.map(({ id, username }) => (
+			{selectUser.map((user) => (
 				<Box
-					key={id}
+					key={user.id}
 					sx={{
 						width: '100%',
 						display: 'flex',
@@ -65,7 +75,7 @@ export const List = ({ isChecked, setIsChecked }: ListProps) => {
 							pb: 1,
 						}}
 					>
-						{id?.slice(0, 1)}
+						{user.id?.slice(0, 1)}
 					</Typography>
 					<Typography
 						sx={{
@@ -75,9 +85,12 @@ export const List = ({ isChecked, setIsChecked }: ListProps) => {
 							pb: 1,
 						}}
 					>
-						{username}
+						{user.username}
 					</Typography>
-					<Checkbox checked={isChecked} onChange={handleChange} />
+					<Checkbox
+						checked={selectedUserId === user.id}
+						onChange={handleChange(user.id)}
+					/>
 				</Box>
 			))}
 		</Box>

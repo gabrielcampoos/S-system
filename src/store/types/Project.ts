@@ -1,3 +1,5 @@
+import { HoleDto } from './Hole';
+
 export interface Project {
 	id?: string;
 	projectNumber: string;
@@ -9,4 +11,6 @@ export interface Project {
 	initialDate: string;
 	finalDate: string;
 	headerText: string;
+	holes?: any[];
+	userId: string;
 }

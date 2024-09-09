@@ -12,7 +12,12 @@ import contextSliceFifthLine from './ContextModalFifthLine/contextSliceFifthLine
 import contextSliceSixthLine from './ContextModalSixthLine/contextSliceSixthLine';
 import contextObservationSlice from './ContextObservation/contextObservationSlice';
 import projectSlice from './Project/projectSlice';
-import holeSlice from './Hole/holeSlice';
+import layerSlice from './Layer/layerSlice';
+import { persistReducer } from 'redux-persist';
+import { holeReducer } from './Hole/holeSlice';
+import profunditySlice from './Profundity/profunditySlice';
+import classLayerSlice from './ClassLayer/classLayerSlice';
+import dataSlice from './Data/dataSlice';
 
 const rootReducer = combineReducers({
 	// a cada novo slice, adicionamos uma nova propriedade neste objeto
@@ -24,8 +29,12 @@ const rootReducer = combineReducers({
 	users: userAdapter,
 	project: projectSlice,
 	projects: projectAdapter,
-	hole: holeSlice,
+	holeReducer,
+	layer: layerSlice,
 	loading: loadingSlice,
+	profundity: profunditySlice,
+	classLayer: classLayerSlice,
+	data: dataSlice,
 
 	// modal: modalTarefasSlice,
 });

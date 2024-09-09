@@ -1,3 +1,5 @@
+import { LayerDto } from './Layer';
+
 export interface HoleState {
 	id: string;
 	holeNumber: string;
@@ -20,4 +22,5 @@ export interface HoleState {
 	textPoll: string;
 	prober: string;
 	pageLines: string;
+	layers: LayerDto[];
 }

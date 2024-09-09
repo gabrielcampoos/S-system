@@ -1,22 +1,45 @@
 import { Box, Button, Checkbox, Typography } from '@mui/material';
 import { format } from 'date-fns';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { useAppDispatch, useAppSelector } from '../../../../../../store/hooks';
 import {
 	deleteHole,
 	getHole,
-	listAllHoles,
 	listHole,
+	listHolesByProjectId,
+	selectHoleById,
+	selectHoles,
+	setHole,
 } from '../../../../../../store/modules/Hole/holeSlice';
 import {
 	listAllProjects,
 	projectEdit,
-	projectList,
 } from '../../../../../../store/modules/Project/projectAdapter';
-import { getProject } from '../../../../../../store/modules/Project/projectSlice';
+import {
+	getProject,
+	listProjects,
+	selectProjectById,
+	selectProjectsByUserId,
+} from '../../../../../../store/modules/Project/projectSlice';
 import Hole from './components/Hole';
-import { HoleDto, Project } from '../../../../../../store/types';
+import {
+	HoleDto,
+	HoleState,
+	LayerState,
+	Project,
+} from '../../../../../../store/types';
+import {
+	clearCurrentLayers,
+	deselectLayer,
+	listLayers,
+	removeLayer,
+	setCurrentLayers,
+	setLayers,
+} from '../../../../../../store/modules/Layer/layerSlice';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../../../../store';
+import { listUsers } from '../../../../../../store/modules/User/userSlice';
 
 interface ListProjectsProps {
 	isChecked: { [key: string]: boolean };
@@ -36,7 +59,7 @@ export const ListProjects = ({
 	setIsCheckedHole,
 }: ListProjectsProps) => {
 	const [openHole, setOpenHole] = useState(false);
-	const [selectedHoleId, setSelectedHoleId] = useState('');
+	const [selectedHoleId, setSelectedHoleId] = useState<string | null>();
 	const [holeNumber, setHoleNumber] = useState('');
 	const [initialDate, setInitialDate] = useState('');
 	const [finalDate, setFinalDate] = useState('');
@@ -57,42 +80,196 @@ export const ListProjects = ({
 	const [textPoll, setTextPoll] = useState('Limite da Sondagem');
 	const [prober, setProber] = useState('');
 	const [pageLines, setPageLines] = useState('');
-
-	const selectProject = useAppSelector(listAllProjects);
-	const selectHole = useAppSelector(listAllHoles);
-	const holeStatus = useAppSelector(
-		(state) => state.hole.entities[selectedHoleId],
+	const [userId, setUserId] = useState<string>('');
+	const [selectHole, setSelectHole] = useState<HoleState[]>([]);
+	const [holeValues, setHoleValues] = useState<HoleState[]>([]);
+	const [projectsStorage, setProjectsStorage] = useState<Array<Project>>([]);
+	const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+		null,
 	);
+	const [prevProjectsLength, setPrevProjectsLength] = useState<number>(0);
+
+	const selectedUser = useAppSelector((state) => state.user);
+	const holeStatus = useAppSelector((state) => state.holeReducer.currentHole);
+
 	const dispatch = useAppDispatch();
 
+	// useEffect(() => {
+	// 	if (selectedHoleId) {
+	// 		dispatch(listHolesByProjectId(selectedHoleId))
+	// 			.unwrap()
+	// 			.then((data) => {
+	// 				if (data.success && data.data) {
+	// 					setSelectHole(data.data);
+	// 				} else {
+	// 					console.error('Dados dos furos não recebidos.');
+	// 				}
+	// 			})
+	// 			.catch((error: any) => {
+	// 				console.error('Erro ao buscar furos:', error);
+	// 			});
+	// 		console.log('ID do projeto selecionado:', selectedHoleId);
+	// 	}
+	// }, [selectedHoleId, dispatch]);
+
+	// useEffect(() => {
+	// 	if (selectedProjectId) {
+	// 		dispatch(listHolesByProjectId(selectedProjectId))
+	// 			.unwrap()
+	// 			.then((data) => {
+	// 				if (data.success && data.data) {
+	// 					setSelectHole(data.data);
+	// 				} else {
+	// 					console.error('Dados dos furos não recebidos.');
+	// 				}
+	// 			})
+	// 			.catch((error) => {
+	// 				console.error('Erro ao buscar furos:', error);
+	// 			});
+	// 	}
+	// }, [selectedProjectId, dispatch]);
+
 	useEffect(() => {
-		dispatch(projectList());
-		dispatch(listHole());
-	}, [dispatch]);
+		if (!selectedProjectId) {
+			setSelectHole([]);
+		}
+	}, [selectedProjectId]);
+
+	useEffect(() => {
+		const userId = selectedUser.id;
+
+		if (userId) {
+			setUserId(userId);
+			dispatch(listProjects(userId));
+		}
+	}, [dispatch, selectedUser.id]);
 
 	const handleOpenHole = () => {
 		setOpenHole((prev) => !prev);
 	};
 
+	// const handleChange =
+	// 	(id: string | undefined) =>
+	// 	(event: React.ChangeEvent<HTMLInputElement>) => {
+	// 		const isChecked = event.target.checked;
+	// 		if (id) {
+	// 			setIsChecked((prevState) => ({
+	// 				...prevState,
+	// 				[id]: isChecked,
+	// 			}));
+	// 			dispatch(getProject(id));
+	// 			localStorage.setItem('idProject', id);
+
+	// 			if (isChecked) {
+	// 				setSelectedProjectId(id);
+	// 				dispatch(listHole(id))
+	// 					.unwrap()
+	// 					.then((data) => {
+	// 						if (data.success && data.data) {
+	// 							setSelectHole(data.data);
+	// 						} else {
+	// 							console.error('Dados dos furos não recebidos.');
+	// 							setSelectHole([]); // Clear the list if there was an issue
+	// 						}
+	// 					})
+	// 					.catch((error) => {
+	// 						console.error('Erro ao buscar furos:', error);
+	// 						setSelectHole([]); // Clear the list if there was an error
+	// 					});
+	// 			} else {
+	// 				setSelectedProjectId(null);
+	// 			}
+	// 		}
+	// 		console.log(isChecked, handleChange);
+	// 	};
+
 	const handleChange =
 		(id: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
+			if (!id) return;
+
 			const isChecked = event.target.checked;
+
+			// Atualize o estado dos checkboxes
 			setIsChecked((prevState) => ({
 				...prevState,
 				[id]: isChecked,
 			}));
-			dispatch(getProject(id));
+
+			// Atualize o localStorage
+
+			if (isChecked) {
+				// Se o checkbox estiver marcado, defina o projeto selecionado e busque os furos
+				setSelectedProjectId(id);
+				localStorage.setItem('idProject', id);
+				dispatch(listHole(id))
+					.unwrap()
+					.then((data) => {
+						if (data.success && data.data) {
+							setSelectHole(data.data);
+						} else {
+							console.error('Dados dos furos não recebidos.');
+							setSelectHole([]); // Limpa a lista em caso de falha
+						}
+					})
+					.catch((error) => {
+						console.error('Erro ao buscar furos:', error);
+						setSelectHole([]); // Limpa a lista em caso de erro
+					});
+			} else {
+				// Se o checkbox estiver desmarcado, limpe o projeto selecionado
+				setSelectedProjectId(null);
+				setSelectHole([]);
+			}
+
+			// Log para depuração
+			console.log(
+				`Checkbox ${id} is ${isChecked ? 'checked' : 'unchecked'}`,
+			);
 		};
 
 	const handleChangeHole =
 		(id: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
 			const isCheckedHole = event.target.checked;
-			setIsCheckedHole((prevState) => ({
-				...prevState,
-				[id]: isCheckedHole,
-			}));
-			dispatch(getHole(id));
-			setSelectedHoleId(id);
+
+			if (id) {
+				setIsCheckedHole((prevState) => ({
+					...prevState,
+					[id]: isCheckedHole,
+				}));
+
+				if (isCheckedHole) {
+					setSelectedHoleId(id);
+					localStorage.setItem('idHole', id);
+
+					dispatch(listLayers(id))
+						.unwrap()
+						.then((data) => {
+							if (data.success && data.data) {
+								console.log(
+									'Dispatching setLayers with:',
+									data.data,
+								);
+								dispatch(setLayers(data.data)); // Atualiza as camadas com os dados recebidos
+								dispatch(setCurrentLayers(data.data)); // Atualiza currentLayers com os dados recebidos
+							} else {
+								console.error(
+									'Dados das camadas não recebidos.',
+								);
+								dispatch(deselectLayer(id)); // Limpa a lista se houver um problema
+							}
+						})
+						.catch((error) => {
+							console.error('Erro ao buscar camadas:', error);
+							dispatch(deselectLayer(id)); // Limpa a lista em caso de erro
+						});
+				} else {
+					setSelectedHoleId(null);
+					localStorage.removeItem('idHole');
+					dispatch(deselectLayer(id)); // Limpa as camadas se o furo for desmarcado
+					dispatch(setLayers([])); // Remove todas as camadas do estado global
+					dispatch(clearCurrentLayers()); // Limpa currentLayers
+				}
+			}
 		};
 
 	const handleEditHole = () => {
@@ -182,79 +359,82 @@ export const ListProjects = ({
 					</Typography>
 				</Box>
 
-				{selectProject.map(
-					({ id, workSite, projectNumber, initialDate }) => (
-						<Box
-							key={id}
-							sx={{
-								width: '100%',
-								display: 'flex',
-								justifyContent: 'center',
-								alignItems: 'center',
-							}}
-						>
-							<Typography
-								sx={{
-									height: '43px',
-									flex: 1,
-									borderRight: '1px solid #000',
-									borderTop: '1px solid #000',
-									textAlign: 'center',
-								}}
-							>
-								{workSite}
-							</Typography>
-							<Typography
-								sx={{
-									height: '43px',
-									flex: 1,
-									borderRight: '1px solid #000',
-									borderTop: '1px solid #000',
-									textAlign: 'center',
-								}}
-							>
-								{projectNumber}
-							</Typography>
-							<Typography
-								sx={{
-									height: '43px',
-									flex: 1,
-									borderRight: '1px solid #000',
-									borderTop: '1px solid #000',
-									textAlign: 'center',
-								}}
-							>
-								{formatDate(initialDate)}
-							</Typography>
+				{userId &&
+					selectedUser.projects.map(
+						({ id, workSite, projectNumber, initialDate }) => (
 							<Box
+								key={id}
 								sx={{
+									width: '100%',
 									display: 'flex',
 									justifyContent: 'center',
 									alignItems: 'center',
-									flex: 1,
-									borderTop: '1px solid #000',
 								}}
 							>
 								<Typography
 									sx={{
-										height: '42px',
+										height: '43px',
 										flex: 1,
+										borderRight: '1px solid #000',
+										borderTop: '1px solid #000',
 										textAlign: 'center',
 									}}
 								>
 									{workSite}
 								</Typography>
-								<Checkbox
-									checked={!!isChecked[id]}
-									onChange={handleChange(id)}
+								<Typography
 									sx={{
-										alignSelf: 'flex-end',
+										height: '43px',
+										flex: 1,
+										borderRight: '1px solid #000',
+										borderTop: '1px solid #000',
+										textAlign: 'center',
 									}}
-								/>
+								>
+									{projectNumber}
+								</Typography>
+								<Typography
+									sx={{
+										height: '43px',
+										flex: 1,
+										borderRight: '1px solid #000',
+										borderTop: '1px solid #000',
+										textAlign: 'center',
+									}}
+								>
+									{formatDate(initialDate)}
+								</Typography>
+								<Box
+									sx={{
+										display: 'flex',
+										justifyContent: 'center',
+										alignItems: 'center',
+										flex: 1,
+										borderTop: '1px solid #000',
+									}}
+								>
+									<Typography
+										sx={{
+											height: '42px',
+											flex: 1,
+											textAlign: 'center',
+										}}
+									>
+										{workSite}
+									</Typography>
+									{selectedUser.id !== undefined && (
+										<Checkbox
+											checked={!!isChecked[id!]}
+											onChange={handleChange(id!)}
+											sx={{
+												alignSelf: 'flex-end',
+											}}
+										/>
+									)}
+								</Box>
 							</Box>
-						</Box>
-					),
-				)}
+						),
+					)}
 			</Box>
 
 			<Box
@@ -346,86 +526,98 @@ export const ListProjects = ({
 						</Typography>
 					</Box>
 
-					{selectHole.map(
-						({ id, name, quota, waterLevel, waterLevelTwo }) => (
-							<Box
-								key={id}
-								sx={{
-									width: '100%',
-									display: 'flex',
-									justifyContent: 'center',
-									alignItems: 'center',
-									borderBottom: '1px solid #000',
-								}}
-							>
-								<Typography
-									sx={{
-										height: '43px',
-										flex: 1,
-										borderRight: '1px solid #000',
-										textAlign: 'center',
-									}}
-								>
-									{name}
-								</Typography>
-								<Typography
-									sx={{
-										flex: 1,
-										height: '43px',
-										borderRight: '1px solid #000',
-										textAlign: 'center',
-									}}
-								>
-									{quota}
-								</Typography>
-								<Typography
-									sx={{
-										flex: 1,
-										height: '43px',
-										borderRight: '1px solid #000',
-										textAlign: 'center',
-									}}
-								>
-									{Number(waterLevel)}
-								</Typography>
-								<Typography
-									sx={{
-										flex: 1,
-										height: '43px',
-										textAlign: 'center',
-										borderRight: '1px solid #000',
-									}}
-								>
-									{Number(waterLevelTwo)}
-								</Typography>
+					{selectHole.length > 0 ? (
+						selectHole.map(
+							({
+								id,
+								name,
+								quota,
+								waterLevel,
+								waterLevelTwo,
+							}) => (
 								<Box
+									key={id}
 									sx={{
+										width: '100%',
 										display: 'flex',
 										justifyContent: 'center',
 										alignItems: 'center',
-										flex: 1,
+										borderBottom: '1px solid #000',
 									}}
 								>
+									<Typography
+										sx={{
+											height: '43px',
+											flex: 1,
+											borderRight: '1px solid #000',
+											textAlign: 'center',
+										}}
+									>
+										{name}
+									</Typography>
+									<Typography
+										sx={{
+											flex: 1,
+											height: '43px',
+											borderRight: '1px solid #000',
+											textAlign: 'center',
+										}}
+									>
+										{quota}
+									</Typography>
+									<Typography
+										sx={{
+											flex: 1,
+											height: '43px',
+											borderRight: '1px solid #000',
+											textAlign: 'center',
+										}}
+									>
+										{Number(waterLevel)}
+									</Typography>
 									<Typography
 										sx={{
 											flex: 1,
 											height: '43px',
 											textAlign: 'center',
+											borderRight: '1px solid #000',
 										}}
 									>
-										{Number(waterLevel) +
-											Number(waterLevelTwo)}
+										{Number(waterLevelTwo)}
 									</Typography>
-									<Checkbox
-										checked={!!isCheckedHole[id]}
-										onChange={handleChangeHole(id)}
+									<Box
 										sx={{
-											alignSelf: 'flex-end',
+											display: 'flex',
+											justifyContent: 'center',
+											alignItems: 'center',
+											flex: 1,
 										}}
-									/>
+									>
+										<Typography
+											sx={{
+												flex: 1,
+												height: '43px',
+												textAlign: 'center',
+											}}
+										>
+											{Number(waterLevel) +
+												Number(waterLevelTwo)}
+										</Typography>
+										<Checkbox
+											checked={!!isCheckedHole[id]}
+											onChange={handleChangeHole(id)}
+											sx={{
+												alignSelf: 'flex-end',
+											}}
+										/>
+									</Box>
 								</Box>
-							</Box>
-						),
+							),
+						)
+					) : (
+						<Typography sx={{ textAlign: 'center' }}>
+							Nenhum furo encontrado.
+						</Typography>
 					)}
 				</Box>
 				<Box
@@ -449,14 +641,15 @@ export const ListProjects = ({
 					<Button
 						onClick={() => {
 							handleEditHole();
-							localStorage.setItem('edit', selectedHoleId);
+							localStorage.setItem('edit', selectedHoleId!);
 						}}
 					>
 						Alterar
 					</Button>
 					<Button
-						onClick={() => {
-							dispatch(deleteHole(selectedHoleId));
+						onClick={async () => {
+							await dispatch(deleteHole(selectedHoleId!));
+							await dispatch(listProjects(userId));
 						}}
 					>
 						Excluir

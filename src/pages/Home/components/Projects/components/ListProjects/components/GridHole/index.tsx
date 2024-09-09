@@ -1,12 +1,17 @@
 import { Box, Button, Grid, TextField } from '@mui/material';
+import { AxiosError } from 'axios';
 import { useEffect, useState } from 'react';
 
-import { useAppDispatch } from '../../../../../../../../store/hooks';
+import {
+	useAppDispatch,
+	useAppSelector,
+} from '../../../../../../../../store/hooks';
 import {
 	createHole,
 	editHole,
 } from '../../../../../../../../store/modules/Hole/holeSlice';
 import { HoleDto, Project } from '../../../../../../../../store/types';
+import { listUsers } from '../../../../../../../../store/modules/User/userSlice';
 
 interface GridHoleProps {
 	close: () => void;
@@ -95,12 +100,43 @@ export const GridHole = ({
 	pageLines,
 	setPageLines,
 }: GridHoleProps) => {
+	const selectedProject = useAppSelector((state) => state.holeReducer.ids);
+	const selectedDescription = useAppSelector((state) =>
+		state.user.projects.find(
+			(description) =>
+				description.id === localStorage.getItem('idProject'),
+		),
+	);
+
 	useEffect(() => {
 		const workDescription = localStorage.getItem('workDescription');
+		const storedHoleNumber = localStorage.getItem('number');
+		const storedName = localStorage.getItem('name');
 
-		if (workDescription) {
-			setWorkDescription(workDescription!);
+		if (selectedDescription) {
+			const descriptionValue = selectedDescription.workDescription;
+			setWorkDescription(descriptionValue as string);
+			console.log(selectedDescription);
 		}
+
+		if (selectedProject) {
+			// const number = parseInt(storedHoleNumber, 10);
+			const newNumber =
+				selectedProject.length === 1 ? 1 : selectedProject.length + 1;
+			setHoleNumber(newNumber.toString());
+		} else {
+			setHoleNumber('1');
+		}
+
+		if (selectedProject) {
+			// const number = parseInt(storedName.replace('SP0', ''), 10);
+			const newNumber =
+				selectedProject.length === 1 ? 1 : selectedProject.length + 1;
+			setName(`SP${newNumber.toString().padStart(2, '0')}`);
+		} else {
+			setName('SP01');
+		}
+
 		const today = new Date().toISOString().split('T')[0];
 		if (!initialDate) setInitialDate(today);
 		if (!finalDate) setFinalDate(today);
@@ -120,17 +156,19 @@ export const GridHole = ({
 		setWorkDescription,
 		textPoll,
 		setTextPoll,
+		setHoleNumber,
+		setName,
 	]);
 
 	const dispatch = useAppDispatch();
 
-	const handleCreateOrUpdateHole = (ev: React.FormEvent<HTMLFormElement>) => {
+	const handleCreateOrUpdateHole = async (
+		ev: React.FormEvent<HTMLFormElement>,
+	) => {
 		ev.preventDefault();
 
-		localStorage.setItem('workDescription', workDescription);
-
 		if (initialDate && finalDate) {
-			const holeData = {
+			const holeData: HoleDto = {
 				holeNumber,
 				initialDate,
 				finalDate,
@@ -153,18 +191,44 @@ export const GridHole = ({
 				pageLines,
 			};
 
-			if (localStorage.getItem('edit')) {
-				dispatch(
-					editHole({
-						id: localStorage.getItem('edit')!,
-						...holeData,
-					}),
-				);
-			} else {
-				dispatch(createHole(holeData));
-			}
-		}
+			try {
+				if (localStorage.getItem('edit')) {
+					await dispatch(
+						editHole({
+							id: localStorage.getItem('edit')!,
+							...holeData,
+						}),
+					).unwrap();
+				} else {
+					await dispatch(
+						createHole({
+							projectId: localStorage.getItem('idProject')!,
+							data: holeData,
+						}),
+					).unwrap();
 
+					dispatch(listUsers());
+				}
+				close();
+				localStorage.removeItem('edit');
+				resetFormFields();
+			} catch (error) {
+				// Exibir mensagem de erro detalhada se disponível
+				console.error('Erro ao criar ou atualizar o furo:', error);
+				if (error instanceof AxiosError) {
+					console.error('Erro detalhado:', error.response?.data);
+					// Exibir mensagem de erro para o usuário
+				} else {
+					console.error('Erro desconhecido:', error);
+				}
+			}
+		} else {
+			console.error('Dados faltando ou inválidos.');
+			// Opcional: Mostrar uma mensagem de erro para o usuário.
+		}
+	};
+
+	const resetFormFields = () => {
 		setHoleNumber('');
 		setInitialDate('');
 		setFinalDate('');
@@ -185,8 +249,8 @@ export const GridHole = ({
 		setTextPoll('');
 		setProber('');
 		setPageLines('');
-		close();
 	};
+
 	const [names, setNames] = useState<string[]>(() => {
 		const savedNames = localStorage.getItem('names');
 		if (savedNames) {
@@ -244,7 +308,6 @@ export const GridHole = ({
 					<TextField
 						label="Número"
 						size="small"
-						type="number"
 						sx={{
 							flex: 0.2,
 							m: 2,
@@ -353,7 +416,7 @@ export const GridHole = ({
 							mr: 2,
 						}}
 						onChange={(event) => setInterval(event.target.value)}
-						value={`${interval} min.`}
+						value={interval}
 					/>
 
 					<TextField
@@ -376,13 +439,12 @@ export const GridHole = ({
 							mr: 2,
 						}}
 						onChange={(event) => setIntervalTwo(event.target.value)}
-						value={`${intervalTwo} hrs.`}
+						value={intervalTwo}
 					/>
 
 					<TextField
 						label="Torque (S / N)"
 						size="small"
-						type="boolean"
 						sx={{
 							flex: 0.1,
 							mr: 2,
@@ -407,7 +469,6 @@ export const GridHole = ({
 					<TextField
 						label="Revestimento"
 						size="small"
-						type="boolean"
 						sx={{
 							flex: 0.16,
 							mr: 2,
@@ -419,7 +480,6 @@ export const GridHole = ({
 					<TextField
 						label="Cavadeira Final"
 						size="small"
-						type="boolean"
 						sx={{
 							flex: 0.25,
 							mr: 2,
@@ -433,7 +493,6 @@ export const GridHole = ({
 					<TextField
 						label="Helicoidal Inicial"
 						size="small"
-						type="boolean"
 						sx={{
 							flex: 0.25,
 							mr: 2,
@@ -447,7 +506,6 @@ export const GridHole = ({
 					<TextField
 						label="Helicoidal Final"
 						size="small"
-						type="boolean"
 						sx={{
 							flex: 0.215,
 							mr: 2,
@@ -461,7 +519,6 @@ export const GridHole = ({
 					<TextField
 						label="Imprime 1° S.P.T (S / N)"
 						size="small"
-						type="boolean"
 						sx={{
 							flex: 0.11,
 						}}
@@ -573,7 +630,12 @@ export const GridHole = ({
 						mt: 5,
 					}}
 				>
-					<Button type="submit" onClick={handleAddName}>
+					<Button
+						type="submit"
+						onClick={() => {
+							handleAddName();
+						}}
+					>
 						{localStorage.getItem('edit') ? 'Alterar' : 'Confirmar'}
 					</Button>
 					<Button

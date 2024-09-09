@@ -32,7 +32,10 @@ export const projectCreate = createAsyncThunk(
 	'project/create',
 	async (newProject: Project, { dispatch }) => {
 		try {
-			const response = await serviceApi.post('/project', newProject);
+			const response = await serviceApi.post(
+				`/project/${newProject.userId}`,
+				newProject,
+			);
 
 			dispatch(
 				showNotification({
@@ -107,9 +110,9 @@ export const projectList = createAsyncThunk(
 
 export const projectDelete = createAsyncThunk(
 	'project/delete',
-	async (data: string, { dispatch }) => {
+	async (id: string, { dispatch }) => {
 		try {
-			const response = await serviceApi.delete(`/project/${data}`);
+			const response = await serviceApi.delete(`/project/${id}`);
 
 			dispatch(
 				showNotification({
@@ -118,27 +121,21 @@ export const projectDelete = createAsyncThunk(
 				}),
 			);
 
-			return response.data;
+			return id;
 		} catch (error) {
 			if (error instanceof AxiosError) {
-				const response: ResponseDeleteProjectDto = {
-					success: error.response?.data.success,
-					message: error.response?.data.message,
-				};
-
 				dispatch(
 					showNotification({
-						message: error.response?.data.message,
+						message:
+							error.response?.data.message || 'Erro desconhecido',
 						success: false,
 					}),
 				);
-				return response;
+
+				return id;
 			}
 
-			return {
-				success: false,
-				message: 'Algo de errado não está certo. A requisição falhou.',
-			};
+			return id;
 		}
 	},
 );
@@ -277,13 +274,11 @@ const projectSlice = createSlice({
 			state.message = 'Excluindo projeto...';
 		});
 		builder.addCase(projectDelete.fulfilled, (state, action) => {
-			const { message, success, data } = action.payload;
+			const id = action.payload;
 			state.loading = false;
-			state.message = message;
+			state.message = 'Projeto excluído com sucesso.';
 
-			if (success) {
-				projectAdapter.removeOne(state, data);
-			}
+			projectAdapter.removeOne(state, id);
 		});
 		builder.addCase(projectDelete.rejected, (state) => {
 			state.loading = false;

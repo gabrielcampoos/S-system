@@ -2,24 +2,24 @@ import {
 	createAsyncThunk,
 	createEntityAdapter,
 	createSlice,
+	PayloadAction,
 } from '@reduxjs/toolkit';
 import { AxiosError } from 'axios';
 import { showNotification } from '../Notification/notificationSlice';
 import serviceApi from '../../../configs/services/api';
-import { ResponseCreateUserDto, User } from '../../types';
+import { ResponseCreateUserDto, User, UserState } from '../../types';
 import { RootState } from '../..';
 
-const initialState = {
-	user: {
-		id: '',
-		username: '',
-	},
+const initialState: UserState = {
+	id: '',
+	username: '',
+	projects: [],
 	loading: false,
 };
 
 export const createUser = createAsyncThunk(
 	'user/create',
-	async (newUser: User, { dispatch }) => {
+	async (newUser: Omit<User, 'id'>, { dispatch }) => {
 		try {
 			const response = await serviceApi.post('/user', newUser);
 
@@ -95,20 +95,11 @@ export const listUsers = createAsyncThunk(
 
 export const getUser = createAsyncThunk(
 	'user/getUser',
-	async (_, { dispatch }) => {
+	async (id: string, { dispatch }) => {
 		try {
-			const response = await serviceApi.get('/validateDataUser');
+			const response = await serviceApi.get(`/getUser/${id}`);
 
 			const responseApi = response.data as ResponseCreateUserDto;
-			if (responseApi.success && responseApi.data) {
-				localStorage.setItem('username', responseApi.data.username);
-			}
-			dispatch(
-				setUser({
-					id: responseApi.data?.id,
-					username: responseApi.data?.username,
-				}),
-			);
 
 			dispatch(
 				showNotification({
@@ -142,120 +133,82 @@ export const getUser = createAsyncThunk(
 
 export const userSlice = createSlice({
 	name: 'user',
-	initialState: initialState,
+	initialState,
 	reducers: {
-		setUser: (state, action) => {
+		setUser: (state, action: PayloadAction<UserState>) => {
 			return {
 				...state,
-				user: {
-					id: action.payload.id,
-					username: action.payload.username,
-				},
+				...action.payload,
 			};
 		},
 	},
 
 	extraReducers: (builder) => {
-		builder.addCase(createUser.pending, (state) => {
-			return {
-				...state,
-				loading: true,
-			};
-		});
+		builder
+			.addCase(createUser.pending, (state) => {
+				state.loading = true;
+			})
 
-		builder.addCase(createUser.fulfilled, (state, action) => {
-			const payload = action.payload as ResponseCreateUserDto;
+			.addCase(createUser.fulfilled, (state, action) => {
+				const payload = action.payload as ResponseCreateUserDto;
 
-			if (payload.success && payload.data) {
-				return {
-					user: {
-						id: payload.data?.id,
-						username: payload.data.username,
-					},
-					loading: false,
-				};
-			}
+				if (payload.success && payload.data) {
+					return {
+						...state,
+						...payload.data,
+						loading: false,
+					};
+				}
+				state.loading = false;
+			})
 
-			if (!payload.success) {
-				return {
-					...state,
-					loading: false,
-				};
-			}
-		});
+			.addCase(createUser.rejected, (state) => {
+				state.loading = false;
+			})
 
-		builder.addCase(createUser.rejected, (state) => {
-			return {
-				...state,
-				loading: false,
-			};
-		});
+			.addCase(listUsers.pending, (state) => {
+				state.loading = false;
+			})
 
-		builder.addCase(listUsers.pending, (state) => {
-			return {
-				...state,
-				loading: true,
-			};
-		});
+			.addCase(listUsers.fulfilled, (state, action) => {
+				const payload = action.payload as ResponseCreateUserDto;
 
-		builder.addCase(listUsers.fulfilled, (state, action) => {
-			const payload = action.payload as ResponseCreateUserDto;
+				if (payload.success && payload.data) {
+					if (Array.isArray(payload.data)) {
+						return {
+							...state,
+							...payload.data[0],
+							loading: false,
+						};
+					}
+				}
+				state.loading = false;
+			})
 
-			if (payload.success && payload.data) {
-				return {
-					user: {
-						id: payload.data?.id,
-						username: payload.data.username,
-					},
-					loading: false,
-				};
-			}
+			.addCase(listUsers.rejected, (state) => {
+				state.loading = false;
+			})
 
-			if (!payload.success) {
-				return {
-					...state,
-					loading: false,
-				};
-			}
-		});
+			.addCase(getUser.pending, (state) => {
+				state.loading = true;
+			})
 
-		builder.addCase(listUsers.rejected, (state) => {
-			return {
-				...state,
-				loading: false,
-			};
-		});
+			.addCase(getUser.fulfilled, (state, action) => {
+				const payload = action.payload as ResponseCreateUserDto;
 
-		builder.addCase(getUser.pending, (state) => {
-			return {
-				...state,
-				loading: true,
-			};
-		});
+				if (payload.success && payload.data) {
+					return {
+						...state,
+						...payload.data,
+						loading: false,
+					};
+				}
+				state.loading = false;
+			})
 
-		builder.addCase(getUser.fulfilled, (state, action) => {
-			const payload = action.payload as ResponseCreateUserDto;
-
-			if (payload.success && payload.data) {
-				localStorage.setItem('username', payload.data.username);
-
-				return {
-					user: {
-						id: payload.data.id,
-						username: payload.data.username,
-					},
-					loading: false,
-				};
-			}
-
-			if (!payload.success) {
-				return initialState;
-			}
-		});
-
-		builder.addCase(getUser.rejected, () => {
-			return initialState;
-		});
+			.addCase(getUser.rejected, (state) => {
+				state.loading = false;
+			});
 	},
 });
 

@@ -7,3 +7,5 @@ export * from './UserState';
 export * from './IsValidCredentials';
 export * from './Hole';
 export * from './HoleState';
+export * from './Layer';
+export * from './LayerState';

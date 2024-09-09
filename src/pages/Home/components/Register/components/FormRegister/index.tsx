@@ -2,7 +2,10 @@ import { Box, Button, TextField } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { IsValidCredentials, User } from '../../../../../../store/types';
 import { useAppDispatch, useAppSelector } from '../../../../../../store/hooks';
-import { createUser } from '../../../../../../store/modules/User/userSlice';
+import {
+	createUser,
+	setUser,
+} from '../../../../../../store/modules/User/userSlice';
 import {
 	userDelete,
 	userEdit,
@@ -14,7 +17,7 @@ interface FormRegisterProps {
 
 export const FormRegister = ({ isChecked }: FormRegisterProps) => {
 	const dispatch = useAppDispatch();
-	const userId = useAppSelector((state) => state.user.user.id);
+	const userId = useAppSelector((state) => state.user.id);
 
 	const [username, setUsername] = useState('');
 
@@ -24,7 +27,9 @@ export const FormRegister = ({ isChecked }: FormRegisterProps) => {
 	});
 
 	const user: User = {
+		id: userId || '',
 		username,
+		projects: [],
 	};
 
 	const handleSignupUser = (ev: React.FormEvent<HTMLFormElement>) => {
@@ -34,7 +39,7 @@ export const FormRegister = ({ isChecked }: FormRegisterProps) => {
 			return;
 		}
 
-		dispatch(createUser(user));
+		dispatch(createUser({ username: username }));
 		setTimeout(() => {
 			setUsername('');
 		}, 3000);
@@ -46,6 +51,7 @@ export const FormRegister = ({ isChecked }: FormRegisterProps) => {
 				userEdit({
 					id: userId,
 					username: username,
+					projects: [],
 				}),
 			);
 			setTimeout(() => {
@@ -109,6 +115,7 @@ export const FormRegister = ({ isChecked }: FormRegisterProps) => {
 				gap: 4,
 				background: '#fff',
 				borderLeft: '1px solid #000',
+				borderBottom: '1px solid #000',
 				pt: 3,
 			}}
 		>

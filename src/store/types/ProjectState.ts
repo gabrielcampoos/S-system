@@ -9,4 +9,6 @@ export interface ProjectState {
 	initialDate: string;
 	finalDate: string;
 	headerText: string;
+	holes?: [];
+	userId: string;
 }

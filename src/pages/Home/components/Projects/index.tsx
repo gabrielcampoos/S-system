@@ -1,7 +1,7 @@
 import { Box, Button, TextField, Typography } from '@mui/material';
 import { ListProjects } from './components/ListProjects';
 import { Layer } from './components/Layer';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Poll } from '../Poll';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import {
@@ -10,6 +10,23 @@ import {
 } from '../../../../store/modules/Project/projectAdapter';
 import jsPDF from 'jspdf';
 import backgroundImage from '../../../../assets/images/pdf.png';
+import Register from '../Register';
+import { register } from 'module';
+import { listProjects } from '../../../../store/modules/Project/projectSlice';
+import { listUsers } from '../../../../store/modules/User/userSlice';
+import { error } from 'console';
+import generatePDF from './components/GeneratePDF';
+import { setLayer } from '../../../../store/modules/Data/dataSlice';
+import Footer from '../../../../assets/images/pdf.png';
+
+interface ProfundityData {
+	hit1: number;
+	hit2: number;
+	hit3: number;
+	profundity1: number;
+	profundity2: number;
+	profundity3: number;
+}
 
 export const Projects = () => {
 	const [displayPoll, setDisplayPoll] = useState('none');
@@ -28,7 +45,58 @@ export const Projects = () => {
 	const [finalDate, setFinalDate] = useState<string>('');
 	const [headerText, setHeaderText] = useState('');
 
-	const projectStatus = useAppSelector((state) => state.project.project);
+	const [layerProfundities, setLayerProfundities] = useState<
+		Record<number, ProfundityData>
+	>({});
+	const [hatch, setHatch] = useState('');
+
+	const projectStatus = useAppSelector((state) => state.project.entities);
+	const holeStatus = useAppSelector((state) => state.holeReducer.entities);
+	const depthState = useAppSelector((state) => state.layer.currentLayers);
+	const projectStatusId = useAppSelector((state) => state.project.ids);
+	const selectedUser = useAppSelector((state) => state.user);
+	const classLayer = useAppSelector((state) => state.classLayer.classLayer);
+	const profundityStatus = useAppSelector(
+		(state) => state.profundity.entities,
+	);
+	const imagesStatus = useAppSelector((state) => state.layer.currentLayers);
+	const idProject = localStorage.getItem('idProject');
+	const idHole = localStorage.getItem('idHole');
+	const project = projectStatus[idProject || ''];
+	const hole = holeStatus[idHole || ''];
+	const depth = depthState?.map((depth) => depth.depth);
+	const images = imagesStatus?.map((hatch) => hatch.hatch);
+	const layers = depthState?.map((layer, index) => {
+		// Acessa os valores de profundidade e hits a partir de layerProfundities usando o index
+		const profundityData = layerProfundities[index];
+
+		// Se não houver profundityData para a camada atual, usa valores padrão (0, por exemplo)
+		const hit1 = profundityData?.hit1 ?? 0;
+		const hit2 = profundityData?.hit2 ?? 0;
+		const hit3 = profundityData?.hit3 ?? 0;
+		const hitDepth1 = profundityData?.profundity1 ?? 0;
+		const hitDepth2 = profundityData?.profundity2 ?? 0;
+		const hitDepth3 = profundityData?.profundity3 ?? 0;
+
+		// Usa a classificação da camada baseada no índice
+		const className = classLayer[index]; // Usa a posição no array para pegar a classificação correta
+
+		// Obtém a imagem correspondente do `imagesStatus`
+		const backgroundImage = images![index] || '';
+
+		return {
+			description: layer.description,
+			depth: layer.depth,
+			classLayer: className || 'Não Classificado',
+			hit1: hit1,
+			hit2: hit2,
+			hit3: hit3,
+			hitDepth1: hitDepth1,
+			hitDepth2: hitDepth2,
+			hitDepth3: hitDepth3,
+			backgroundImage: backgroundImage,
+		};
+	});
 
 	const dispatch = useAppDispatch();
 
@@ -54,20 +122,35 @@ export const Projects = () => {
 	}
 
 	const handleEditProject = () => {
-		setProjectNumber(projectStatus.projectNumber);
-		setClient(projectStatus.client);
-		setProjectAlphanumericNumber(projectStatus.projectAlphanumericNumber);
-		setWorkDescription(projectStatus.workDescription);
-		setWorkSite(projectStatus.workSite);
-		setReleaseDate(projectStatus.releaseDate);
-		setInitialDate(projectStatus.initialDate);
-		setFinalDate(projectStatus.finalDate);
-		setHeaderText(projectStatus.headerText);
+		setProjectNumber(project!.projectNumber);
+		setClient(project!.client);
+		setProjectAlphanumericNumber(project!.projectAlphanumericNumber);
+		setWorkDescription(project!.workDescription);
+		setWorkSite(project!.workSite);
+		setReleaseDate(project!.releaseDate);
+		setInitialDate(project!.initialDate);
+		setFinalDate(project!.finalDate);
+		setHeaderText(project!.headerText);
 		setDisplayPoll('visible');
 	};
 
 	const handleDeleteProject = () => {
-		dispatch(projectDelete(projectStatus.id));
+		const findId = projectStatusId.includes(
+			localStorage.getItem('idProject')!,
+		);
+
+		if (findId) {
+			const id = localStorage.getItem('idProject');
+			dispatch(projectDelete(id!))
+				.unwrap()
+				.then(() => {
+					dispatch(listProjects(selectedUser.id));
+					dispatch(listUsers());
+				})
+				.catch((error) => {
+					console.error('Erro ao excluir o projeto:', error);
+				});
+		}
 
 		setTimeout(() => {
 			setProjectNumber('');
@@ -83,16 +166,52 @@ export const Projects = () => {
 	};
 
 	//Gerar PDF
-	const generatePDF = () => {
-		const doc = new jsPDF();
+	const handleGeneratePDF = () => {
+		const rawCota = hole!.quota.trim(); // Remove espaços ao redor
+		const cotaInitial = parseFloat(rawCota.replace(/[^0-9.-]/g, ''));
 
-		const img = new Image();
-		img.src = backgroundImage;
-		img.onload = () => {
-			doc.addImage(img, 'PNG', 0, 0, 210, 297);
+		if (isNaN(cotaInitial)) {
+			return; // Interrompe a execução se cotaInitial for inválido
+		}
+		// Verifique se 'layers' está definido e tem dados
+		if (!layers || layers.length === 0) {
+			return; // Interrompe a execução se não houver dados de camadas
+		}
 
-			doc.save('output.pdf');
+		const profundities = Object.values(profundityStatus).map(
+			(profundity) => ({
+				id: profundity!.id,
+				profundity0: profundity!.profundity0,
+				spt: profundity!.spt,
+				hit1: profundity!.hit1,
+				profundity1: profundity!.profundity1,
+				hit2: profundity!.hit2,
+				profundity2: profundity!.profundity2,
+				hit3: profundity!.hit3,
+				profundity3: profundity!.profundity3,
+			}),
+		);
+
+		// Dados de exemplo
+		const data = {
+			username: selectedUser.username,
+			obra: project!.workDescription,
+			local: project!.workSite,
+			furo: hole!.name,
+			cota: cotaInitial,
+			dataInicio: project!.initialDate,
+			dataFinal: project!.finalDate,
+			profundidadeCamada: depth as number[],
+			layer: layers,
+			profundities: profundities,
+			footer: Footer,
 		};
+		console.log(profundityStatus);
+
+		generatePDF({
+			data: data,
+		});
+		console.log(layers);
 	};
 
 	return (
@@ -206,7 +325,12 @@ export const Projects = () => {
 							width: '100%',
 						}}
 					>
-						<Layer />
+						<Layer
+							layerProfundities={layerProfundities}
+							setLayerProfundities={setLayerProfundities}
+							hatch={hatch}
+							setHatch={setHatch}
+						/>
 					</Box>
 				</Box>
 			</Box>
@@ -243,7 +367,11 @@ export const Projects = () => {
 				/>
 			</Box>
 
-			<Button color="error" variant="contained" onClick={generatePDF}>
+			<Button
+				color="error"
+				variant="contained"
+				onClick={handleGeneratePDF}
+			>
 				Gerar PDF
 			</Button>
 		</>

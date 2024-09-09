@@ -1,10 +1,20 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import {
+	createAsyncThunk,
+	createEntityAdapter,
+	createSelector,
+	createSlice,
+} from '@reduxjs/toolkit';
 import { AxiosError } from 'axios';
 
 import serviceApi from '../../../configs/services/api';
-import { ResponseCreateProjectDto, ResponseCreateUserDto } from '../../types';
+import {
+	ResponseCreateProjectDto,
+	ResponseCreateUserDto,
+	ResponseListProjectsDto,
+} from '../../types';
 import { Project } from '../../types/Project';
 import { showNotification } from '../Notification/notificationSlice';
+import { RootState } from '../..';
 
 const initialState = {
 	project: {
@@ -18,7 +28,10 @@ const initialState = {
 		initialDate: '',
 		finalDate: '',
 		headerText: '',
-	},
+		holes: [],
+		userId: '',
+	} as Project,
+	projects: [] as Project[],
 	loading: false,
 };
 
@@ -26,7 +39,10 @@ export const createProject = createAsyncThunk(
 	'project/create',
 	async (newProject: Project, { dispatch }) => {
 		try {
-			const response = await serviceApi.post('/project', newProject);
+			const response = await serviceApi.post(
+				`/project/${newProject.userId}`,
+				newProject,
+			);
 
 			const responseApi = response.data as ResponseCreateProjectDto;
 
@@ -37,7 +53,7 @@ export const createProject = createAsyncThunk(
 				}),
 			);
 
-			return responseApi;
+			return responseApi.data as Project;
 		} catch (error) {
 			if (error instanceof AxiosError) {
 				const response = error.response
@@ -50,24 +66,21 @@ export const createProject = createAsyncThunk(
 					}),
 				);
 
-				return response;
+				return null;
 			}
 
-			return {
-				success: false,
-				message: 'Erro inesperado.',
-			};
+			return null;
 		}
 	},
 );
 
 export const listProjects = createAsyncThunk(
 	'project/list',
-	async (_, { dispatch }) => {
+	async (userId: string, { dispatch }) => {
 		try {
-			const response = await serviceApi.get('/project');
+			const response = await serviceApi.get(`/project/${userId}`);
 
-			const responseApi = response.data as ResponseCreateProjectDto;
+			const responseApi = response.data as ResponseListProjectsDto;
 
 			dispatch(
 				showNotification({
@@ -76,11 +89,11 @@ export const listProjects = createAsyncThunk(
 				}),
 			);
 
-			return responseApi;
+			return responseApi.data as Project[];
 		} catch (error) {
 			if (error instanceof AxiosError) {
 				const response = error.response
-					?.data as ResponseCreateProjectDto;
+					?.data as ResponseListProjectsDto;
 
 				dispatch(
 					showNotification({
@@ -89,13 +102,10 @@ export const listProjects = createAsyncThunk(
 					}),
 				);
 
-				return response;
+				return [];
 			}
 
-			return {
-				success: false,
-				message: 'Erro inesperado.',
-			};
+			return [];
 		}
 	},
 );
@@ -108,21 +118,7 @@ export const getProject = createAsyncThunk(
 
 			const responseApi = response.data as ResponseCreateProjectDto;
 			if (responseApi.success && responseApi.data)
-				dispatch(
-					setProject({
-						id: responseApi.data?.id,
-						projectNumber: responseApi.data?.id,
-						client: responseApi.data?.client,
-						projectAlphanumericNumber:
-							responseApi.data?.projectAlphanumericNumber,
-						workDescription: responseApi.data?.workDescription,
-						workSite: responseApi.data?.workSite,
-						releaseDate: new Date(responseApi.data?.releaseDate),
-						initialDate: new Date(responseApi.data?.initialDate),
-						finalDate: new Date(responseApi.data?.finalDate),
-						headerText: responseApi.data?.headerText,
-					}),
-				);
+				dispatch(setProject(responseApi.data as Project));
 
 			dispatch(
 				showNotification({
@@ -131,7 +127,7 @@ export const getProject = createAsyncThunk(
 				}),
 			);
 
-			return responseApi;
+			return responseApi.data as Project;
 		} catch (error) {
 			if (error instanceof AxiosError) {
 				const response = error.response
@@ -144,166 +140,102 @@ export const getProject = createAsyncThunk(
 					}),
 				);
 
-				return response;
+				return null;
 			}
 
-			return {
-				success: false,
-				message: 'Erro inesperado.',
-			};
+			return null;
 		}
 	},
 );
 
+const projectsAdapter = createEntityAdapter<Project>({
+	selectId: (project) => project.id ?? '',
+	sortComparer: (a, b) => a.projectNumber.localeCompare(b.projectNumber),
+});
+
+export const { selectAll: selectAllProjects, selectById: selectProjectById } =
+	projectsAdapter.getSelectors((state: RootState) => state.projects);
+
+export const selectProjectsByUserId = (userId: string) =>
+	createSelector([selectAllProjects], (projects) =>
+		projects.filter((project) => project.userId === userId),
+	);
+
 export const projectSlice = createSlice({
 	name: 'project',
-	initialState: initialState,
+	initialState: projectsAdapter.getInitialState({
+		project: {
+			id: '',
+			projectNumber: '',
+			client: '',
+			projectAlphanumericNumber: '',
+			workDescription: '',
+			workSite: '',
+			releaseDate: '',
+			initialDate: '',
+			finalDate: '',
+			headerText: '',
+			holes: [],
+			userId: '',
+		} as Project,
+		loading: false,
+	}),
 	reducers: {
 		setProject: (state, action) => {
-			return {
-				...state,
-				project: {
-					id: action.payload.id,
-					projectNumber: action.payload.projectNumber,
-					client: action.payload.client,
-					projectAlphanumericNumber:
-						action.payload.projectAlphanumericNumber,
-					workDescription: action.payload.workDescription,
-					workSite: action.payload.workSite,
-					releaseDate: action.payload.releaseDate,
-					initialDate: action.payload.initialDate,
-					finalDate: action.payload.finalDate,
-					headerText: action.payload.headerText,
-				},
-			};
+			state.project = action.payload;
 		},
 	},
 
 	extraReducers: (builder) => {
 		builder.addCase(createProject.pending, (state) => {
-			return {
-				...state,
-				loading: true,
-			};
+			state.loading = true;
 		});
 
 		builder.addCase(createProject.fulfilled, (state, action) => {
-			const payload = action.payload as ResponseCreateProjectDto;
+			const project = action.payload as Project;
 
-			if (payload.success && payload.data) {
-				return {
-					project: {
-						id: payload.data?.id,
-						projectNumber: payload.data.projectNumber,
-						client: payload.data.client,
-						projectAlphanumericNumber:
-							payload.data.projectAlphanumericNumber,
-						workDescription: payload.data.workDescription,
-						workSite: payload.data.workSite,
-						releaseDate: payload.data.releaseDate,
-						initialDate: payload.data.initialDate,
-						finalDate: payload.data.finalDate,
-						headerText: payload.data.headerText,
-					},
-					loading: false,
-				};
+			if (project) {
+				state.project = project;
+				projectsAdapter.addOne(state, project);
 			}
-
-			if (!payload.success) {
-				return {
-					...state,
-					loading: false,
-				};
-			}
+			state.loading = false;
 		});
 
 		builder.addCase(createProject.rejected, (state) => {
-			return {
-				...state,
-				loading: false,
-			};
+			state.loading = false;
 		});
 
 		builder.addCase(listProjects.pending, (state) => {
-			return {
-				...state,
-				loading: true,
-			};
+			state.loading = true;
 		});
 
 		builder.addCase(listProjects.fulfilled, (state, action) => {
-			const payload = action.payload as ResponseCreateProjectDto;
+			const projects = action.payload as Project[];
 
-			if (payload.success && payload.data) {
-				return {
-					project: {
-						id: payload.data?.id,
-						projectNumber: payload.data.projectNumber,
-						client: payload.data.client,
-						projectAlphanumericNumber:
-							payload.data.projectAlphanumericNumber,
-						workDescription: payload.data.workDescription,
-						workSite: payload.data.workSite,
-						releaseDate: payload.data.releaseDate,
-						initialDate: payload.data.initialDate,
-						finalDate: payload.data.finalDate,
-						headerText: payload.data.headerText,
-					},
-					loading: false,
-				};
-			}
-
-			if (!payload.success) {
-				return {
-					...state,
-					loading: false,
-				};
-			}
+			projectsAdapter.setAll(state, projects);
+			state.loading = false;
 		});
 
 		builder.addCase(listProjects.rejected, (state) => {
-			return {
-				...state,
-				loading: false,
-			};
+			state.loading = false;
 		});
 
 		builder.addCase(getProject.pending, (state) => {
-			return {
-				...state,
-				loading: true,
-			};
+			state.loading = true;
 		});
 
 		builder.addCase(getProject.fulfilled, (state, action) => {
-			const payload = action.payload as ResponseCreateProjectDto;
+			const project = action.payload as Project;
 
-			if (payload.success && payload.data) {
-				return {
-					project: {
-						id: payload.data.id,
-						projectNumber: payload.data.projectNumber,
-						client: payload.data.client,
-						projectAlphanumericNumber:
-							payload.data.projectAlphanumericNumber,
-						workDescription: payload.data.workDescription,
-						workSite: payload.data.workSite,
-						releaseDate: payload.data.releaseDate,
-						initialDate: payload.data.initialDate,
-						finalDate: payload.data.finalDate,
-						headerText: payload.data.headerText,
-					},
-					loading: false,
-				};
+			if (project) {
+				state.project = project;
+				projectsAdapter.upsertOne(state, project);
 			}
-
-			if (!payload.success) {
-				return initialState;
-			}
+			state.loading = false;
 		});
 
-		builder.addCase(getProject.rejected, () => {
-			return initialState;
+		builder.addCase(getProject.rejected, (state) => {
+			state.loading = false;
 		});
 	},
 });

@@ -1,14 +1,19 @@
-import { Box, Button, TextField } from '@mui/material';
+import { Box, Button, IconButton, TextField } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { Project } from '../../../../store/types/Project';
-import { createProject } from '../../../../store/modules/Project/projectSlice';
+import {
+	createProject,
+	listProjects,
+} from '../../../../store/modules/Project/projectSlice';
 import {
 	listAllProjects,
 	projectDelete,
 	projectEdit,
 } from '../../../../store/modules/Project/projectAdapter';
-import MultipleSelect from './components/SelectClient';
+import Register from '../Register';
+import AddIcon from '@mui/icons-material/Add';
+import { setUser } from '../../../../store/modules/User/userSlice';
 
 interface PollProps {
 	close: () => void;
@@ -54,10 +59,13 @@ export const Poll = ({
 	setHeaderText,
 }: PollProps) => {
 	const [personName, setPersonName] = useState<string[]>([]);
+	const [displayRegister, setDisplayRegister] = useState(false);
 
 	const projectStatus = useAppSelector((state) => state.project.project.id);
 
 	const projectLength = useAppSelector(listAllProjects);
+
+	const user = useAppSelector((state) => state.user);
 
 	const dispatch = useAppDispatch();
 
@@ -83,33 +91,47 @@ export const Poll = ({
 		ev.preventDefault();
 
 		if (releaseDate && initialDate && finalDate) {
-			dispatch(
-				createProject({
-					projectNumber: String(projectLength.length + 1),
-					client: client,
-					projectAlphanumericNumber: projectAlphanumericNumber,
-					workDescription: workDescription,
-					workSite: workSite,
-					releaseDate: releaseDate,
-					initialDate: initialDate,
-					finalDate: finalDate,
-					headerText: headerText,
-				}),
-			);
-			localStorage.setItem('workDescription', workDescription);
+			const newProject = {
+				projectNumber: String(user.projects.length + 1),
+				client: user.username,
+				projectAlphanumericNumber: projectAlphanumericNumber,
+				workDescription: workDescription,
+				workSite: workSite,
+				releaseDate: releaseDate,
+				initialDate: initialDate,
+				finalDate: finalDate,
+				headerText: headerText,
+				holes: [],
+				userId: user.id,
+			};
+			try {
+				dispatch(createProject(newProject)).unwrap();
 
-			setTimeout(() => {
-				setProjectNumber('');
-				setClient('');
-				setProjectAlphanumericNumber('');
-				setWorkDescription('');
-				setWorkSite('');
-				setReleaseDate('');
-				setInitialDate('');
-				setFinalDate('');
-				setHeaderText('');
-				close();
-			}, 3000);
+				dispatch(
+					setUser({
+						...user,
+						projects: [...user.projects, newProject],
+					}),
+				);
+				dispatch(listProjects(user.id));
+
+				localStorage.setItem('workDescription', workDescription);
+
+				setTimeout(() => {
+					setProjectNumber('');
+					setClient('');
+					setProjectAlphanumericNumber('');
+					setWorkDescription('');
+					setWorkSite('');
+					setReleaseDate('');
+					setInitialDate('');
+					setFinalDate('');
+					setHeaderText('');
+					close();
+				}, 3000);
+			} catch (error) {
+				console.error('Erro ao criar o projeto:', error);
+			}
 		} else {
 			console.error('As datas não foram definidas corretamente.');
 		}
@@ -123,7 +145,7 @@ export const Poll = ({
 				projectEdit({
 					id: projectStatus,
 					projectNumber: projectNumber,
-					client: client,
+					client: user.username,
 					projectAlphanumericNumber: projectAlphanumericNumber,
 					workDescription: workDescription,
 					workSite: workSite,
@@ -131,6 +153,8 @@ export const Poll = ({
 					initialDate: initialDate,
 					finalDate: finalDate,
 					headerText: headerText,
+					holes: [],
+					userId: localStorage.getItem('userId')!,
 				}),
 			);
 
@@ -151,83 +175,24 @@ export const Poll = ({
 	};
 
 	return (
-		<Box
-			component="form"
-			onSubmit={
-				localStorage.getItem('edit')
-					? handleEditProject
-					: handleCreateProject
-			}
-			sx={{
-				width: '100%',
-				height: '100vh',
-				background: '#fff',
-				display: 'flex',
-				justifyContent: 'center',
-				alignItems: 'center',
-				mt: 5,
-			}}
-		>
+		<>
 			<Box
+				component="form"
+				onSubmit={
+					localStorage.getItem('edit')
+						? handleEditProject
+						: handleCreateProject
+				}
 				sx={{
 					width: '100%',
+					height: '100vh',
+					background: '#fff',
 					display: 'flex',
 					justifyContent: 'center',
 					alignItems: 'center',
-					flexDirection: 'column',
+					mt: 5,
 				}}
 			>
-				<Box
-					sx={{
-						width: '100%',
-						display: 'flex',
-						justifyContent: 'space-evenly',
-						alignItems: 'center',
-						pt: 2,
-						pb: 2,
-					}}
-				>
-					<TextField
-						label="Número Projeto"
-						size="small"
-						sx={{
-							flex: 0.1,
-						}}
-						value={String(projectLength.length + 1)}
-					/>
-
-					<MultipleSelect
-						personName={personName}
-						setPersonName={setPersonName}
-					/>
-				</Box>
-
-				<Box
-					sx={{
-						width: '100%',
-						display: 'flex',
-						justifyContent: 'center',
-						alignItems: 'center',
-						pt: 2,
-						pb: 2,
-					}}
-				>
-					<TextField
-						label="Número Projeto Alfanumérico"
-						size="small"
-						sx={{
-							flex: 0.2,
-							right: 276,
-						}}
-						onChange={(event) =>
-							setProjectAlphanumericNumber(
-								event.currentTarget.value,
-							)
-						}
-						value={projectAlphanumericNumber}
-					/>
-				</Box>
-
 				<Box
 					sx={{
 						width: '100%',
@@ -235,105 +200,179 @@ export const Poll = ({
 						justifyContent: 'center',
 						alignItems: 'center',
 						flexDirection: 'column',
-						gap: 4,
-						pt: 3,
-						pb: 3,
 					}}
 				>
-					<TextField
-						label="Descrição da Obra"
-						size="small"
-						fullWidth
-						onChange={(event) =>
-							setWorkDescription(event.currentTarget.value)
-						}
-						value={workDescription}
-					/>
-					<TextField
-						label="Local da Obra"
-						size="small"
-						fullWidth
-						onChange={(event) =>
-							setWorkSite(event.currentTarget.value)
-						}
-						value={workSite}
-					/>
-
-					<TextField
-						size="small"
-						type="date"
+					<Box
 						sx={{
-							alignSelf: 'flex-start',
+							width: '100%',
+							display: 'flex',
+							justifyContent: 'space-evenly',
+							alignItems: 'center',
+							pt: 2,
+							pb: 2,
 						}}
-						onChange={(event) =>
-							setReleaseDate(event.currentTarget.value)
-						}
-						value={releaseDate || ''}
-					/>
+					>
+						<TextField
+							label="Número Projeto"
+							size="small"
+							sx={{
+								flex: 0.1,
+							}}
+							value={user.projects.length + 1}
+						/>
 
-					<TextField
-						label="Data Início"
-						size="small"
-						type="date"
-						sx={{
-							alignSelf: 'flex-start',
-						}}
-						onChange={(event) =>
-							setInitialDate(event.currentTarget.value)
-						}
-						value={initialDate || ''}
-					/>
-
-					<TextField
-						label="Data Término"
-						size="small"
-						type="date"
-						sx={{
-							alignSelf: 'flex-start',
-						}}
-						onChange={(event) =>
-							setFinalDate(event.currentTarget.value)
-						}
-						value={finalDate || ''}
-					/>
-
-					<TextField
-						label="Texto do Cabeçalho do Relatório da Sondagem"
-						size="small"
-						fullWidth
-						sx={{
-							alignSelf: 'flex-start',
-						}}
-						onChange={(event) =>
-							setHeaderText(event.currentTarget.value)
-						}
-						value={headerText}
-					/>
+						<Box>
+							<TextField
+								label="Cliente"
+								size="small"
+								sx={{
+									flex: 0.1,
+								}}
+								value={user.username}
+							/>
+							<IconButton
+								onClick={() => setDisplayRegister(true)}
+							>
+								<AddIcon />
+							</IconButton>
+						</Box>
+					</Box>
 
 					<Box
 						sx={{
-							width: '50%',
+							width: '100%',
 							display: 'flex',
-							justifyContent: 'space-around',
+							justifyContent: 'center',
 							alignItems: 'center',
+							pt: 2,
+							pb: 2,
 						}}
 					>
-						<Button variant="contained" type="submit">
-							{localStorage.getItem('edit')
-								? 'Atualizar'
-								: 'Confirmar'}
-						</Button>
-						<Button
-							variant="contained"
-							onClick={() => {
-								close();
+						<TextField
+							label="Número Projeto Alfanumérico"
+							size="small"
+							sx={{
+								flex: 0.2,
+								right: 258,
+							}}
+							onChange={(event) =>
+								setProjectAlphanumericNumber(
+									event.currentTarget.value,
+								)
+							}
+							value={projectAlphanumericNumber}
+						/>
+					</Box>
+
+					<Box
+						sx={{
+							width: '100%',
+							display: 'flex',
+							justifyContent: 'center',
+							alignItems: 'center',
+							flexDirection: 'column',
+							gap: 4,
+							pt: 3,
+							pb: 3,
+						}}
+					>
+						<TextField
+							label="Descrição da Obra"
+							size="small"
+							fullWidth
+							onChange={(event) =>
+								setWorkDescription(event.currentTarget.value)
+							}
+							value={workDescription}
+						/>
+						<TextField
+							label="Local da Obra"
+							size="small"
+							fullWidth
+							onChange={(event) =>
+								setWorkSite(event.currentTarget.value)
+							}
+							value={workSite}
+						/>
+
+						<TextField
+							size="small"
+							type="date"
+							sx={{
+								alignSelf: 'flex-start',
+							}}
+							onChange={(event) =>
+								setReleaseDate(event.currentTarget.value)
+							}
+							value={releaseDate || ''}
+						/>
+
+						<TextField
+							label="Data Início"
+							size="small"
+							type="date"
+							sx={{
+								alignSelf: 'flex-start',
+							}}
+							onChange={(event) =>
+								setInitialDate(event.currentTarget.value)
+							}
+							value={initialDate || ''}
+						/>
+
+						<TextField
+							label="Data Término"
+							size="small"
+							type="date"
+							sx={{
+								alignSelf: 'flex-start',
+							}}
+							onChange={(event) =>
+								setFinalDate(event.currentTarget.value)
+							}
+							value={finalDate || ''}
+						/>
+
+						<TextField
+							label="Texto do Cabeçalho do Relatório da Sondagem"
+							size="small"
+							fullWidth
+							sx={{
+								alignSelf: 'flex-start',
+							}}
+							onChange={(event) =>
+								setHeaderText(event.currentTarget.value)
+							}
+							value={headerText}
+						/>
+
+						<Box
+							sx={{
+								width: '50%',
+								display: 'flex',
+								justifyContent: 'space-around',
+								alignItems: 'center',
 							}}
 						>
-							Cancelar
-						</Button>
+							<Button variant="contained" type="submit">
+								{localStorage.getItem('edit')
+									? 'Atualizar'
+									: 'Confirmar'}
+							</Button>
+							<Button
+								variant="contained"
+								onClick={() => {
+									close();
+								}}
+							>
+								Cancelar
+							</Button>
+						</Box>
 					</Box>
 				</Box>
 			</Box>
-		</Box>
+
+			<Register open={displayRegister} setOpen={setDisplayRegister} />
+		</>
 	);
 };

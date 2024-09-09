@@ -34,14 +34,6 @@ export const Home = () => {
 			/>
 
 			<Box
-				display={display}
-				sx={{
-					width: '100%',
-				}}
-			>
-				<Register />
-			</Box>
-			<Box
 				display={displayProjects}
 				sx={{
 					width: '100%',
