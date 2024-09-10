@@ -11,6 +11,8 @@ import { forwardRef, SetStateAction, useState } from 'react';
 
 import { HoleDto } from '../../../../../../../../store/types';
 import { GridHole } from '../GridHole';
+import { Details } from '../Details';
+import OpenDetails from '../OpenDetails';
 
 interface HoleProps {
 	openHole: boolean;
@@ -112,6 +114,7 @@ export default function Hole({
 	pageLines,
 	setPageLines,
 }: HoleProps) {
+	const [open, setOpen] = useState(false);
 	const handleClose = () => {
 		setOpenHole(false);
 	};
@@ -141,6 +144,15 @@ export default function Hole({
 						>
 							Manutenção Dados Furo
 						</Typography>
+						<Button onClick={() => setOpen(true)}>
+							<Typography
+								sx={{
+									color: '#FFF',
+								}}
+							>
+								Outros Detalhes
+							</Typography>
+						</Button>
 					</Toolbar>
 				</AppBar>
 				<GridHole
@@ -187,6 +199,7 @@ export default function Hole({
 					setPageLines={setPageLines}
 				/>
 			</Dialog>
+			<OpenDetails close={handleClose} open={open} setOpen={setOpen} />
 		</>
 	);
 }
