@@ -115,7 +115,6 @@ export const Details = ({ close }: Details) => {
 					<TextField
 						label="Lavagem Início"
 						size="small"
-						type="date"
 						sx={{
 							flex: 0.2,
 							m: 2,
@@ -129,7 +128,6 @@ export const Details = ({ close }: Details) => {
 					<TextField
 						label="Lavagem Término"
 						size="small"
-						type="date"
 						sx={{
 							flex: 0.2,
 							m: 2,
@@ -143,7 +141,6 @@ export const Details = ({ close }: Details) => {
 					<TextField
 						label="Lavagem por Tempo"
 						size="small"
-						type="date"
 						sx={{
 							flex: 0.2,
 							m: 2,
@@ -157,7 +154,6 @@ export const Details = ({ close }: Details) => {
 					<TextField
 						label="Profundidade Início"
 						size="small"
-						type="date"
 						sx={{
 							flex: 0.2,
 							m: 2,
