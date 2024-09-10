@@ -50,6 +50,8 @@ interface ListProjectsProps {
 	setIsCheckedHole: React.Dispatch<
 		React.SetStateAction<{ [key: string]: boolean }>
 	>;
+	waterLevelTwo: string;
+	setWaterLevelTwo: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export const ListProjects = ({
@@ -57,6 +59,8 @@ export const ListProjects = ({
 	setIsChecked,
 	isCheckedHole,
 	setIsCheckedHole,
+	waterLevelTwo,
+	setWaterLevelTwo,
 }: ListProjectsProps) => {
 	const [openHole, setOpenHole] = useState(false);
 	const [selectedHoleId, setSelectedHoleId] = useState<string | null>();
@@ -66,9 +70,8 @@ export const ListProjects = ({
 	const [name, setName] = useState('');
 	const [workDescription, setWorkDescription] = useState('');
 	const [quota, setQuota] = useState('');
-	const [waterLevel, setWaterLevel] = useState('');
 	const [interval, setInterval] = useState('30');
-	const [waterLevelTwo, setWaterLevelTwo] = useState('');
+	const [waterLevel, setWaterLevel] = useState('');
 	const [intervalTwo, setIntervalTwo] = useState('24');
 	const [torque, setTorque] = useState('N');
 	const [coating, setCoating] = useState('');

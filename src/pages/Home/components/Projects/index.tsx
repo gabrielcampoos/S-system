@@ -18,6 +18,7 @@ import { error } from 'console';
 import generatePDF from './components/GeneratePDF';
 import { setLayer } from '../../../../store/modules/Data/dataSlice';
 import Footer from '../../../../assets/images/pdf.png';
+import NA from '../../../../assets/images/na.png';
 
 interface ProfundityData {
 	hit1: number;
@@ -44,6 +45,8 @@ export const Projects = () => {
 	const [initialDate, setInitialDate] = useState<string>('');
 	const [finalDate, setFinalDate] = useState<string>('');
 	const [headerText, setHeaderText] = useState('');
+	const [waterLevelTwo, setWaterLevelTwo] = useState('');
+	const [printSpt, setPrintSpt] = useState('');
 
 	const [layerProfundities, setLayerProfundities] = useState<
 		Record<number, ProfundityData>
@@ -97,6 +100,16 @@ export const Projects = () => {
 			backgroundImage: backgroundImage,
 		};
 	});
+
+	useEffect(() => {
+		if (hole && hole.waterLevelTwo && hole.printSpt) {
+			setWaterLevelTwo(hole.waterLevelTwo); // Atualize o estado com o nível de água do furo selecionado
+			setPrintSpt(hole.printSpt);
+		} else {
+			setWaterLevelTwo(''); // Se não houver valor, defina como string vazia
+			setPrintSpt('');
+		}
+	}, [hole, idHole, holeStatus]);
 
 	const dispatch = useAppDispatch();
 
@@ -205,13 +218,14 @@ export const Projects = () => {
 			layer: layers,
 			profundities: profundities,
 			footer: Footer,
+			na: NA,
+			waterLevelTwo: waterLevelTwo,
+			printSpt: printSpt,
 		};
-		console.log(profundityStatus);
 
 		generatePDF({
 			data: data,
 		});
-		console.log(layers);
 	};
 
 	return (
@@ -317,6 +331,8 @@ export const Projects = () => {
 							setIsChecked={setIsChecked}
 							isCheckedHole={isCheckedHole}
 							setIsCheckedHole={setIsCheckedHole}
+							waterLevelTwo={waterLevelTwo}
+							setWaterLevelTwo={setWaterLevelTwo}
 						/>
 					</Box>
 

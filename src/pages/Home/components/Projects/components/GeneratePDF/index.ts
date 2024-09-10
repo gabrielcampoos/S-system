@@ -37,6 +37,9 @@ interface GeneratePDFProps {
 			backgroundImage: string;
 		}[];
 		footer: string;
+		na: string;
+		waterLevelTwo: string;
+		printSpt: string;
 	};
 }
 
@@ -152,17 +155,217 @@ const generatePDF = ({ data }: GeneratePDFProps) => {
 		});
 	}
 
+	// function checkSoilDescriptionAndDrawText(
+	// 	pdf: any,
+	// 	data: any,
+	// 	rulerStartX: number,
+	// 	rulerSpacing: number,
+	// 	startY: number,
+	// 	printSpt: string,
+	// ) {
+	// 	function drawSoilText(text: string, yPosition: number) {
+	// 		const maxLineLength = 10; // Número máximo de caracteres por linha
+	// 		const lineHeight = 3; // Espaçamento entre linhas
+
+	// 		const textLines = text.match(
+	// 			new RegExp('.{1,' + maxLineLength + '}', 'g'),
+	// 		);
+
+	// 		if (textLines) {
+	// 			textLines.forEach((line: string, index: number) => {
+	// 				pdf.text(
+	// 					line,
+	// 					rulerStartX + 111,
+	// 					yPosition + index * lineHeight,
+	// 				);
+	// 			});
+	// 		}
+	// 	}
+
+	// 	const maxDepth = Math.max(...data.layer.map((p: any) => p.depth));
+	// 	let currentLayerIndex = 0;
+	// 	///////////////////////////////////////////////////////////////////////////
+	// 	let prevText = '';
+	// 	////////////////////////////////////////////////////////////////////////////
+	// 	for (let meter = 0; meter <= maxDepth; meter++) {
+	// 		const currentDepth = meter;
+	// 		const nextDepth = meter + 1;
+
+	// 		let layer = data.layer[currentLayerIndex];
+
+	// 		while (layer && currentDepth >= layer.depth) {
+	// 			currentLayerIndex++;
+	// 			layer = data.layer[currentLayerIndex];
+	// 		}
+
+	// 		if (!layer) {
+	// 			break;
+	// 		}
+
+	// 		const { description, hit2, hit3 } = layer;
+	// 		const hitSum = (hit2 ?? 0) + (hit3 ?? 0);
+	// 		let soilText = '';
+
+	// 		// Classificação para TODAS as descrições, baseada no hitSum
+	// 		if (
+	// 			description.includes('AREIA FINA ARENOSA') ||
+	// 			description.includes('AREIA FINA SILTOSA') ||
+	// 			description.includes('AREIA FINA ARGILOSA') ||
+	// 			description.includes('SILTE ARENOSO') ||
+	// 			description.includes('SILTE SILTOSO')
+	// 		) {
+	// 			// Regras para solos arenosos e siltosos
+	// 			if (hitSum <= 4) {
+	// 				soilText = 'Fofa(o)';
+	// 			} else if (hitSum >= 5 && hitSum <= 8) {
+	// 				soilText = 'Pouco compacta(o)';
+	// 			} else if (hitSum >= 9 && hitSum <= 18) {
+	// 				soilText = 'Medianamente compacta(o)';
+	// 			} else if (hitSum >= 19 && hitSum <= 40) {
+	// 				soilText = 'Compacta(o)';
+	// 			} else if (hitSum > 40) {
+	// 				soilText = 'Muito compacta(o)';
+	// 			}
+	// 		} else if (
+	// 			description.includes('SILTE ARGILOSO') ||
+	// 			description.includes('ARGILA ARENOSA') ||
+	// 			description.includes('ARGILA SILTOSA') ||
+	// 			description.includes('ARGILA ARGILOSA')
+	// 		) {
+	// 			// Regras para solos argilosos
+	// 			if (hitSum <= 2) {
+	// 				soilText = 'Muito mole';
+	// 			} else if (hitSum >= 3 && hitSum <= 5) {
+	// 				soilText = 'Mole';
+	// 			} else if (hitSum >= 6 && hitSum <= 10) {
+	// 				soilText = 'Média(o)';
+	// 			} else if (hitSum >= 11 && hitSum <= 19) {
+	// 				soilText = 'Rija(o)';
+	// 			} else if (hitSum > 19) {
+	// 				soilText = 'Dura(o)';
+	// 			}
+	// 		}
+
+	// 		const yPosition = startY + (meter + 0.5) * rulerSpacing;
+
+	// 		// Lógica de printSpt
+	// 		if (meter === 0 && printSpt === 'N') {
+	// 			// Se o printSpt for 'N', pular o desenho da primeira linha
+	// 			continue;
+	// 		}
+
+	// 		///////////////////////////////////////////////////////////////
+	// 		if (soilText !== prevText) {
+	// 			pdf.setFillColor(255, 255, 255); // Cor branca
+	// 			pdf.rect(
+	// 				rulerStartX + 110.301, // X inicial
+	// 				yPosition + 3, // Y inicial (ajustado conforme necessário)
+	// 				17.5, // Largura do retângulo
+	// 				25, // Altura do retângulo (ajustado conforme necessário)
+	// 				'F',
+	// 			);
+	// 			/////////////////////////////////////////////////////////////////////////////
+	// 			pdf.setFontSize(8);
+	// 			drawSoilText(soilText, yPosition + 12);
+	// 			prevText = soilText;
+	// 		}
+
+	// 		if (nextDepth > layer.depth) {
+	// 			let previousYPosition = 0;
+
+	// 			const remainingDepth = nextDepth - layer.depth;
+	// 			const nextLayer = data.layer[currentLayerIndex + 1];
+	// 			let nextDescriptionText = '';
+
+	// 			if (nextLayer) {
+	// 				const nextHitSum = (hit2 ?? 0) + (hit3 ?? 0);
+	// 				const nextDescription = nextLayer.description;
+
+	// 				const currentYPosition =
+	// 					startY + layer.depth * rulerSpacing;
+	// 				if (
+	// 					nextDescription.includes('AREIA FINA ARENOSA') ||
+	// 					nextDescription.includes('AREIA FINA SILTOSA') ||
+	// 					nextDescription.includes('AREIA FINA ARGILOSA') ||
+	// 					nextDescription.includes('SILTE ARENOSO') ||
+	// 					nextDescription.includes('SILTE SILTOSO')
+	// 				) {
+	// 					if (nextHitSum <= 4) {
+	// 						nextDescriptionText = 'Fofa(o)';
+	// 					} else if (nextHitSum >= 5 && nextHitSum <= 8) {
+	// 						nextDescriptionText = 'Pouco compacta(o)';
+	// 					} else if (nextHitSum >= 9 && nextHitSum <= 18) {
+	// 						nextDescriptionText = 'Medianamente compacta(o)';
+	// 					} else if (nextHitSum >= 19 && nextHitSum <= 40) {
+	// 						nextDescriptionText = 'Compacta(o)';
+	// 					} else if (nextHitSum > 40) {
+	// 						nextDescriptionText = 'Muito compacta(o)';
+	// 					}
+	// 				} else if (
+	// 					nextDescription.includes('SILTE ARGILOSO') ||
+	// 					nextDescription.includes('ARGILA ARENOSA') ||
+	// 					nextDescription.includes('ARGILA SILTOSA') ||
+	// 					nextDescription.includes('ARGILA ARGILOSA')
+	// 				) {
+	// 					if (nextHitSum <= 2) {
+	// 						nextDescriptionText = 'Muito mole';
+	// 					} else if (nextHitSum >= 3 && nextHitSum <= 5) {
+	// 						nextDescriptionText = 'Mole';
+	// 					} else if (nextHitSum >= 6 && nextHitSum <= 10) {
+	// 						nextDescriptionText = 'Média(o)';
+	// 					} else if (nextHitSum >= 11 && nextHitSum <= 19) {
+	// 						nextDescriptionText = 'Rija(o)';
+	// 					} else if (nextHitSum > 19) {
+	// 						nextDescriptionText = 'Dura(o)';
+	// 					}
+	// 				}
+	// 				previousYPosition = currentYPosition;
+	// 			}
+	// 			const adjustedYPosition =
+	// 				previousYPosition + remainingDepth + 2.5;
+	// 			if (nextDescriptionText !== prevText) {
+	// 				////////////////////////////////////////////////
+
+	// 				doc.setLineWidth(0.1);
+	// 				pdf.setFillColor(255, 255, 255); // Cor branca
+	// 				pdf.rect(
+	// 					rulerStartX + 110.301, // X inicial
+	// 					yPosition + 30, // Y inicial (ajustado conforme necessário)
+	// 					17.5, // Largura do retângulo
+	// 					100, // Altura do retângulo (ajustado conforme necessário)
+	// 					'F',
+	// 				);
+
+	// 				//////////////////////////////////////
+	// 				drawSoilText(nextDescriptionText, adjustedYPosition);
+
+	// 				///////////////////////////////////
+	// 				prevText = nextDescriptionText;
+	// 				doc.line(rulerStartX + 128, 151, rulerStartX - 2, 151);
+	// 				////////////////////////////////////
+	// 			}
+	// 		}
+
+	// 		if (nextDepth >= layer.depth) {
+	// 			currentLayerIndex++;
+	// 		}
+	// 	}
+	// }
+
 	function checkSoilDescriptionAndDrawText(
 		pdf: any,
 		data: any,
 		rulerStartX: number,
 		rulerSpacing: number,
 		startY: number,
+		printSpt: string, // Recebendo o printSpt como argumento
 	) {
+		// Função para desenhar texto com quebras de linha
 		function drawSoilText(text: string, yPosition: number) {
 			const maxLineLength = 10; // Número máximo de caracteres por linha
 			const lineHeight = 3; // Espaçamento entre linhas
 
+			// Divide o texto em várias linhas com base no comprimento máximo
 			const textLines = text.match(
 				new RegExp('.{1,' + maxLineLength + '}', 'g'),
 			);
@@ -178,31 +381,35 @@ const generatePDF = ({ data }: GeneratePDFProps) => {
 			}
 		}
 
-		const maxDepth = Math.max(...data.layer.map((p: any) => p.depth));
+		const maxDepth = Math.max(...data.layer.map((p: any) => p.depth)); // Maior profundidade
 		let currentLayerIndex = 0;
-		///////////////////////////////////////////////////////////////////////////
-		let prevText = '';
-		////////////////////////////////////////////////////////////////////////////
+		let prevText = ''; // Armazena o texto anterior para evitar duplicação
+
+		// Loop sobre cada metro até a profundidade máxima
 		for (let meter = 0; meter <= maxDepth; meter++) {
 			const currentDepth = meter;
 			const nextDepth = meter + 1;
 
+			// Acessa a camada atual
 			let layer = data.layer[currentLayerIndex];
 
+			// Avança para a próxima camada se a profundidade atual ultrapassar a profundidade da camada
 			while (layer && currentDepth >= layer.depth) {
 				currentLayerIndex++;
 				layer = data.layer[currentLayerIndex];
 			}
 
+			// Se não houver mais camadas, saia do loop
 			if (!layer) {
 				break;
 			}
 
+			// Desestrutura os dados da camada
 			const { description, hit2, hit3 } = layer;
 			const hitSum = (hit2 ?? 0) + (hit3 ?? 0);
 			let soilText = '';
 
-			// Classificação para TODAS as descrições, baseada no hitSum
+			// Classificação para solos arenosos e siltosos
 			if (
 				description.includes('AREIA FINA ARENOSA') ||
 				description.includes('AREIA FINA SILTOSA') ||
@@ -210,7 +417,7 @@ const generatePDF = ({ data }: GeneratePDFProps) => {
 				description.includes('SILTE ARENOSO') ||
 				description.includes('SILTE SILTOSO')
 			) {
-				// Regras para solos arenosos e siltosos
+				// Regras para solos arenosos e siltosos baseadas na soma dos hits
 				if (hitSum <= 4) {
 					soilText = 'Fofa(o)';
 				} else if (hitSum >= 5 && hitSum <= 8) {
@@ -222,13 +429,15 @@ const generatePDF = ({ data }: GeneratePDFProps) => {
 				} else if (hitSum > 40) {
 					soilText = 'Muito compacta(o)';
 				}
-			} else if (
+			}
+			// Classificação para solos argilosos
+			else if (
 				description.includes('SILTE ARGILOSO') ||
 				description.includes('ARGILA ARENOSA') ||
 				description.includes('ARGILA SILTOSA') ||
 				description.includes('ARGILA ARGILOSA')
 			) {
-				// Regras para solos argilosos
+				// Regras para solos argilosos baseadas na soma dos hits
 				if (hitSum <= 2) {
 					soilText = 'Muito mole';
 				} else if (hitSum >= 3 && hitSum <= 5) {
@@ -242,104 +451,69 @@ const generatePDF = ({ data }: GeneratePDFProps) => {
 				}
 			}
 
-			const yPosition = startY + (meter + 0.5) * rulerSpacing;
+			const yPosition = startY + (meter + 0.5) * rulerSpacing; // Calcula a posição Y para o texto
+			// Lógica de printSpt
+			if (meter === 0 && data.printSpt === 'N') {
+				// Se o printSpt for 'N', desenhe um retângulo branco sobre a primeira linha
+				pdf.setFillColor(255, 255, 255); // Cor branca
 
-			///////////////////////////////////////////////////////////////
+				// Cobrir a área do perfil geológico
+				pdf.rect(
+					rulerStartX + 50, // Posição X do retângulo (ajuste conforme necessário)
+					yPosition - 5, // Posição Y do retângulo (ajuste conforme necessário)
+					50, // Largura do retângulo (ajuste conforme necessário)
+					10, // Altura do retângulo (ajuste conforme necessário)
+					'F', // O 'F' indica preenchimento
+				);
+
+				// Cobrir a área da classificação da camada
+				pdf.rect(
+					rulerStartX + 130, // Posição X do retângulo (ajuste conforme necessário)
+					yPosition - 5, // Posição Y do retângulo (ajuste conforme necessário)
+					20, // Largura do retângulo (ajuste conforme necessário)
+					10, // Altura do retângulo (ajuste conforme necessário)
+					'F', // O 'F' indica preenchimento
+				);
+
+				// Cobrir a área dos golpes
+				pdf.rect(
+					rulerStartX + 190, // Posição X para a coluna de golpes
+					yPosition - 5, // Posição Y (ajuste conforme necessário)
+					30, // Largura do retângulo que cobre os golpes
+					10, // Altura do retângulo (ajuste conforme necessário)
+					'F', // Preenchimento
+				);
+
+				// Continue para não desenhar o texto da primeira linha
+				continue;
+			}
+
+			// Se o texto do solo atual for diferente do anterior, desenhe-o
 			if (soilText !== prevText) {
+				// Desenhar um retângulo branco para sobrepor o texto anterior
 				pdf.setFillColor(255, 255, 255); // Cor branca
 				pdf.rect(
-					rulerStartX + 110.301, // X inicial
-					yPosition + 3, // Y inicial (ajustado conforme necessário)
-					17.5, // Largura do retângulo
-					25, // Altura do retângulo (ajustado conforme necessário)
-					'F',
+					rulerStartX + 110.301, // Posição X
+					yPosition + 3, // Posição Y
+					17.5, // Largura
+					25, // Altura
+					'F', // Preenchimento
 				);
-				/////////////////////////////////////////////////////////////////////////////
+
+				// Defina o tamanho da fonte e desenhe o texto
 				pdf.setFontSize(8);
-				drawSoilText(soilText, yPosition + 12);
+				drawSoilText(soilText, yPosition + 12); // Desenha o texto ajustado na posição Y
+
+				// Atualiza o texto anterior
 				prevText = soilText;
 			}
 
-			if (nextDepth > layer.depth) {
-				let previousYPosition = 0;
-
-				const remainingDepth = nextDepth - layer.depth;
-				const nextLayer = data.layer[currentLayerIndex + 1];
-				let nextDescriptionText = '';
-
-				if (nextLayer) {
-					const nextHitSum = (hit2 ?? 0) + (hit3 ?? 0);
-					const nextDescription = nextLayer.description;
-
-					const currentYPosition =
-						startY + layer.depth * rulerSpacing;
-					if (
-						nextDescription.includes('AREIA FINA ARENOSA') ||
-						nextDescription.includes('AREIA FINA SILTOSA') ||
-						nextDescription.includes('AREIA FINA ARGILOSA') ||
-						nextDescription.includes('SILTE ARENOSO') ||
-						nextDescription.includes('SILTE SILTOSO')
-					) {
-						if (nextHitSum <= 4) {
-							nextDescriptionText = 'Fofa(o)';
-						} else if (nextHitSum >= 5 && nextHitSum <= 8) {
-							nextDescriptionText = 'Pouco compacta(o)';
-						} else if (nextHitSum >= 9 && nextHitSum <= 18) {
-							nextDescriptionText = 'Medianamente compacta(o)';
-						} else if (nextHitSum >= 19 && nextHitSum <= 40) {
-							nextDescriptionText = 'Compacta(o)';
-						} else if (nextHitSum > 40) {
-							nextDescriptionText = 'Muito compacta(o)';
-						}
-					} else if (
-						nextDescription.includes('SILTE ARGILOSO') ||
-						nextDescription.includes('ARGILA ARENOSA') ||
-						nextDescription.includes('ARGILA SILTOSA') ||
-						nextDescription.includes('ARGILA ARGILOSA')
-					) {
-						if (nextHitSum <= 2) {
-							nextDescriptionText = 'Muito mole';
-						} else if (nextHitSum >= 3 && nextHitSum <= 5) {
-							nextDescriptionText = 'Mole';
-						} else if (nextHitSum >= 6 && nextHitSum <= 10) {
-							nextDescriptionText = 'Média(o)';
-						} else if (nextHitSum >= 11 && nextHitSum <= 19) {
-							nextDescriptionText = 'Rija(o)';
-						} else if (nextHitSum > 19) {
-							nextDescriptionText = 'Dura(o)';
-						}
-					}
-					previousYPosition = currentYPosition;
-				}
-				const adjustedYPosition =
-					previousYPosition + remainingDepth + 2.5;
-				if (nextDescriptionText !== prevText) {
-					////////////////////////////////////////////////
-
-					doc.setLineWidth(0.1);
-					pdf.setFillColor(255, 255, 255); // Cor branca
-					pdf.rect(
-						rulerStartX + 110.301, // X inicial
-						yPosition + 30, // Y inicial (ajustado conforme necessário)
-						17.5, // Largura do retângulo
-						100, // Altura do retângulo (ajustado conforme necessário)
-						'F',
-					);
-
-					//////////////////////////////////////
-					drawSoilText(nextDescriptionText, adjustedYPosition);
-
-					///////////////////////////////////
-					prevText = nextDescriptionText;
-					doc.line(rulerStartX + 128, 151, rulerStartX - 2, 151);
-					////////////////////////////////////
-				}
-			}
-
+			// Lógica para a próxima profundidade
 			if (nextDepth >= layer.depth) {
 				currentLayerIndex++;
 			}
 		}
+		console.log(data.printSpt);
 	}
 
 	// Função para desenhar o texto com base no número de dígitos
@@ -672,6 +846,7 @@ const generatePDF = ({ data }: GeneratePDFProps) => {
 		rulerStartX,
 		rulerSpacing,
 		startY,
+		data.printSpt,
 	);
 
 	// Itera sobre as profundidades e desenha no PDF
@@ -920,6 +1095,9 @@ const generatePDF = ({ data }: GeneratePDFProps) => {
 		pageWidth - marginRight,
 		lineY + 30,
 	);
+
+	doc.addImage(data.na, 'PNG', marginLeft + 200, pageHeight / 2 - 40, 8, 8);
+	doc.text(`${data.waterLevelTwo},00`, marginLeft + 200, pageHeight / 2 - 43);
 
 	// Salve o PDF
 	doc.save('grafico.pdf');
