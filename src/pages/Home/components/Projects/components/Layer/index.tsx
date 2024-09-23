@@ -409,60 +409,16 @@ export const Layer = ({
 							const description =
 								layerState[index]?.description || '';
 							return (
-								<Box
-									key={layer.id}
-									sx={{
-										width: '100%',
-										display: 'flex',
-										justifyContent: 'center',
-										alignItems: 'center',
-									}}
-								>
-									<Typography
+								<>
+									<Box
+										key={layer.id}
 										sx={{
-											flex: 1,
-											borderTop: '1px solid #000',
-											borderRight: '1px solid #000',
-											borderBottom: '1px solid #000',
-											textAlign: 'center',
+											width: '100%',
+											display: 'flex',
+											justifyContent: 'center',
+											alignItems: 'center',
 										}}
 									>
-										{layer.code}
-									</Typography>
-									<Typography
-										sx={{
-											flex: 1,
-											borderTop: '1px solid #000',
-											borderRight: '1px solid #000',
-											borderBottom: '1px solid #000',
-											textAlign: 'center',
-										}}
-									>
-										{depth}
-									</Typography>
-									<Typography
-										sx={{
-											flex: 1,
-											borderTop: '1px solid #000',
-											borderRight: '1px solid #000',
-											borderBottom: '1px solid #000',
-											textAlign: 'center',
-										}}
-									>
-										{layer.type}
-									</Typography>
-									<Typography
-										sx={{
-											flex: 1,
-											borderTop: '1px solid #000',
-											borderRight: '1px solid #000',
-											borderBottom: '1px solid #000',
-											textAlign: 'center',
-										}}
-									>
-										{layer.description}
-									</Typography>
-									<Tooltip title={layer.hatch} arrow>
 										<Typography
 											sx={{
 												flex: 1,
@@ -470,44 +426,97 @@ export const Layer = ({
 												borderRight: '1px solid #000',
 												borderBottom: '1px solid #000',
 												textAlign: 'center',
-												whiteSpace: 'nowrap', // Impede a quebra de linha
-												overflow: 'hidden', // Oculta o texto que ultrapassa o limite
-												textOverflow: 'ellipsis', // Adiciona reticências ao final do texto longo
-												maxWidth: '10rem',
 											}}
 										>
-											{layer.hatch}
+											{layer.code}
 										</Typography>
-									</Tooltip>
-									<Typography
-										sx={{
-											flex: 1,
-											borderTop: '1px solid #000',
-											borderBottom: '1px solid #000',
-											textAlign: 'center',
-										}}
-									>
-										{getClassification(sum, description)}
-									</Typography>
-								</Box>
-							);
-							<FormControlLabel
-								control={
-									<Checkbox
-										checked={selectedLayers.includes(
-											layer.id!,
-										)}
-										onChange={() =>
-											handleCheckboxChange(layer.id!)
+										<Typography
+											sx={{
+												flex: 1,
+												borderTop: '1px solid #000',
+												borderRight: '1px solid #000',
+												borderBottom: '1px solid #000',
+												textAlign: 'center',
+											}}
+										>
+											{depth}
+										</Typography>
+										<Typography
+											sx={{
+												flex: 1,
+												borderTop: '1px solid #000',
+												borderRight: '1px solid #000',
+												borderBottom: '1px solid #000',
+												textAlign: 'center',
+											}}
+										>
+											{layer.type}
+										</Typography>
+										<Typography
+											sx={{
+												flex: 1,
+												borderTop: '1px solid #000',
+												borderRight: '1px solid #000',
+												borderBottom: '1px solid #000',
+												textAlign: 'center',
+											}}
+										>
+											{layer.description}
+										</Typography>
+										<Tooltip title={layer.hatch} arrow>
+											<Typography
+												sx={{
+													flex: 1,
+													borderTop: '1px solid #000',
+													borderRight:
+														'1px solid #000',
+													borderBottom:
+														'1px solid #000',
+													textAlign: 'center',
+													whiteSpace: 'nowrap', // Impede a quebra de linha
+													overflow: 'hidden', // Oculta o texto que ultrapassa o limite
+													textOverflow: 'ellipsis', // Adiciona reticências ao final do texto longo
+													maxWidth: '10rem',
+												}}
+											>
+												{layer.hatch}
+											</Typography>
+										</Tooltip>
+										<Typography
+											sx={{
+												flex: 1,
+												borderTop: '1px solid #000',
+												borderBottom: '1px solid #000',
+												textAlign: 'center',
+											}}
+										>
+											{getClassification(
+												sum,
+												description,
+											)}
+										</Typography>
+									</Box>
+									{/* <FormControlLabel
+										control={
+											<Checkbox
+												checked={selectedLayers.includes(
+													layer.id!,
+												)}
+												onChange={() =>
+													handleCheckboxChange(
+														layer.id!,
+													)
+												}
+											/>
 										}
-									/>
-								}
-								label=""
-								sx={{
-									alignSelf: 'flex-end',
-									m: 0,
-								}}
-							/>;
+										label=""
+										sx={{
+											alignSelf: 'flex-end',
+											m: 0,
+										}}
+									/> */}
+								</>
+							);
 						})}
 					</Box>
 				</Box>

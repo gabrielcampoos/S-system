@@ -45,6 +45,7 @@ export const Projects = () => {
 	const [initialDate, setInitialDate] = useState<string>('');
 	const [finalDate, setFinalDate] = useState<string>('');
 	const [headerText, setHeaderText] = useState('');
+	const [waterLevel, setWaterLevel] = useState('');
 	const [waterLevelTwo, setWaterLevelTwo] = useState('');
 	const [printSpt, setPrintSpt] = useState('');
 
@@ -103,6 +104,7 @@ export const Projects = () => {
 
 	useEffect(() => {
 		if (hole && hole.waterLevelTwo && hole.printSpt) {
+			setWaterLevel(hole.waterLevel);
 			setWaterLevelTwo(hole.waterLevelTwo); // Atualize o estado com o nível de água do furo selecionado
 			setPrintSpt(hole.printSpt);
 		} else {
@@ -183,11 +185,9 @@ export const Projects = () => {
 		const rawCota = hole!.quota.trim(); // Remove espaços ao redor
 		const cotaInitial = parseFloat(rawCota.replace(/[^0-9.-]/g, ''));
 
-		if (isNaN(cotaInitial)) {
-			return; // Interrompe a execução se cotaInitial for inválido
-		}
 		// Verifique se 'layers' está definido e tem dados
 		if (!layers || layers.length === 0) {
+			console.log('Nenhum dado de camada encontrado');
 			return; // Interrompe a execução se não houver dados de camadas
 		}
 
@@ -211,7 +211,11 @@ export const Projects = () => {
 			obra: project!.workDescription,
 			local: project!.workSite,
 			furo: hole!.name,
-			cota: cotaInitial,
+			intervalo: hole!.interval,
+			intervalo2: hole!.intervalTwo,
+			espiral: hole!.initialHelical,
+			espiralFinal: hole!.finalHelical,
+			cota: Number(hole!.quota),
 			dataInicio: project!.initialDate,
 			dataFinal: project!.finalDate,
 			profundidadeCamada: depth as number[],
@@ -219,9 +223,12 @@ export const Projects = () => {
 			profundities: profundities,
 			footer: Footer,
 			na: NA,
-			waterLevelTwo: waterLevelTwo,
+			waterLevel: hole!.waterLevel,
+			waterLevelTwo: hole!.waterLevelTwo,
 			printSpt: printSpt,
 		};
+
+		console.log(project);
 
 		generatePDF({
 			data: data,

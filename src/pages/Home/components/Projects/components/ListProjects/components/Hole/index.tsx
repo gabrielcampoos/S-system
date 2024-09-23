@@ -199,7 +199,7 @@ export default function Hole({
 					setPageLines={setPageLines}
 				/>
 			</Dialog>
-			<OpenDetails close={handleClose} open={open} setOpen={setOpen} />
+			{/* <OpenDetails close={handleClose} open={open} setOpen={setOpen} /> */}
 		</>
 	);
 }
