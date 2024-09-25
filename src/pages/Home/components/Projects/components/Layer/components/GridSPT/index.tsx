@@ -58,9 +58,6 @@ export default function GridSPT({ open, setOpen }: GridSPTProps) {
 						>
 							S.P.T
 						</Typography>
-						<Button autoFocus color="inherit" onClick={handleClose}>
-							save
-						</Button>
 					</Toolbar>
 				</AppBar>
 				<TableSPT close={handleClose} />

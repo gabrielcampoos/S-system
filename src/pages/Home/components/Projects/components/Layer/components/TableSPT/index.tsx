@@ -16,7 +16,6 @@ import {
 	fetchProfundities,
 	selectAllProfundities,
 } from '../../../../../../../../store/modules/Profundity/profunditySlice';
-import { v4 as uuid } from 'uuid';
 
 interface RowData {
 	id?: string;
@@ -29,6 +28,7 @@ interface RowData {
 	Golpes3: number;
 	Profundidade3: number;
 }
+
 interface Profundity {
 	id?: string;
 	profundity0: number;
@@ -63,21 +63,18 @@ export default function TableSPT({ close }: TableSPTProps) {
 	});
 
 	const dispatch = useAppDispatch();
-
 	const profundities = useAppSelector(selectAllProfundities);
 
 	const flattenProfundities = (profundities: Profundity[]): RowData[] => {
 		const flattened = profundities.map((profundity, index) =>
 			convertToRowData(profundity, index),
 		);
-		console.log('Flattened Data:', flattened);
 		return flattened;
 	};
 
 	React.useEffect(() => {
 		if (profundities) {
 			const flattenedRows = flattenProfundities(profundities);
-			console.log('Updated Rows:', flattenedRows);
 			setRows(flattenedRows);
 		}
 	}, [profundities]);
@@ -90,7 +87,7 @@ export default function TableSPT({ close }: TableSPTProps) {
 		profundity: Profundity,
 		index: number,
 	): RowData => {
-		const rowData = {
+		return {
 			Profundidade: profundity.profundity0,
 			SPT: profundity.spt ?? 0,
 			Golpes1: profundity.hit1 ?? 0,
@@ -100,15 +97,18 @@ export default function TableSPT({ close }: TableSPTProps) {
 			Golpes3: profundity.hit3 ?? 0,
 			Profundidade3: profundity.profundity3 ?? 0,
 		};
-		return rowData;
+	};
+
+	// Captura o evento "Enter"
+	const handleKeyPress = (event: React.KeyboardEvent<HTMLDivElement>) => {
+		if (event.key === 'Enter') {
+			handleAddRow();
+		}
 	};
 
 	const handleAddRow = () => {
 		const newProfundity: Profundity = {
-			profundity0:
-				rows.length > 0
-					? rows[rows.length - 1].Profundidade + 15
-					: profundidade,
+			profundity0: profundidade,
 			spt: spt,
 			hit1: golpes1,
 			profundity1: profundidade1,
@@ -120,6 +120,7 @@ export default function TableSPT({ close }: TableSPTProps) {
 
 		console.log('New Profundity:', newProfundity);
 
+		// Dispatch para criar profundidade sem redefinir imediatamente
 		dispatch(
 			createProfundity({
 				profundities: [newProfundity],
@@ -128,7 +129,15 @@ export default function TableSPT({ close }: TableSPTProps) {
 			.unwrap()
 			.then(() => {
 				console.log('Profundity added successfully');
-				setProfundidade(newProfundity.profundity0);
+
+				// Aqui, atualize a tabela diretamente após adicionar
+				setRows((prevRows) => [
+					...prevRows,
+					convertToRowData(newProfundity, prevRows.length),
+				]);
+
+				// Após a adição correta, redefina os valores do formulário
+				setProfundidade(newProfundity.profundity0 + 15);
 				setSpt(0);
 				setGolpes1(0);
 				setProfundidade1(15);
@@ -136,7 +145,6 @@ export default function TableSPT({ close }: TableSPTProps) {
 				setProfundidade2(15);
 				setGolpes3(0);
 				setProfundidade3(15);
-				close();
 			})
 			.catch((error) => {
 				console.error('Failed to add profundity: ', error);
@@ -198,7 +206,7 @@ export default function TableSPT({ close }: TableSPTProps) {
 				</Table>
 			</TableContainer>
 
-			<div style={{ margin: '20px 0' }}>
+			<div style={{ margin: '20px 0' }} onKeyDown={handleKeyPress}>
 				<TextField
 					label="Profundidade"
 					type="number"

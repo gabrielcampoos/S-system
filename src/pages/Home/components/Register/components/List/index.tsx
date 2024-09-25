@@ -51,6 +51,7 @@ export const List = ({ isChecked, setIsChecked }: ListProps) => {
 				justifyContent: 'center',
 				alignItems: 'center',
 				flexDirection: 'column',
+				borderLeft: '1px solid #000',
 			}}
 		>
 			{selectUser.map((user) => (
@@ -66,7 +67,7 @@ export const List = ({ isChecked, setIsChecked }: ListProps) => {
 				>
 					<Typography
 						sx={{
-							flex: 0.153,
+							flex: 0.16,
 							pl: 5,
 							borderRight: '1px solid #000',
 							pt: 1,

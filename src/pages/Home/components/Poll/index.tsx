@@ -180,214 +180,237 @@ export const Poll = ({
 	return (
 		<>
 			<Box
-				component="form"
-				onSubmit={
-					localStorage.getItem('edit')
-						? handleEditProject
-						: handleCreateProject
-				}
 				sx={{
 					width: '100%',
-					height: '100vh',
-					background: '#fff',
 					display: 'flex',
-					justifyContent: 'center',
-					alignItems: 'center',
-					mt: 5,
 				}}
 			>
 				<Box
+					component="form"
+					onSubmit={
+						localStorage.getItem('edit')
+							? handleEditProject
+							: handleCreateProject
+					}
 					sx={{
 						width: '100%',
+						height: '100vh',
+						background: '#fff',
 						display: 'flex',
-						justifyContent: 'center',
 						alignItems: 'center',
-						flexDirection: 'column',
+						mt: 5,
 					}}
 				>
 					<Box
 						sx={{
 							width: '100%',
 							display: 'flex',
-							justifyContent: 'space-evenly',
-							alignItems: 'center',
-							pt: 2,
-							pb: 2,
-						}}
-					>
-						<TextField
-							label="Número Projeto"
-							size="small"
-							sx={{
-								flex: 0.1,
-							}}
-							value={user.projects.length + 1}
-						/>
-
-						<Box>
-							<TextField
-								label="Cliente"
-								size="small"
-								sx={{
-									flex: 0.1,
-								}}
-								value={user.username}
-							/>
-							<IconButton
-								onClick={() => setDisplayRegister(true)}
-							>
-								<AddIcon />
-							</IconButton>
-						</Box>
-					</Box>
-
-					<Box
-						sx={{
-							width: '100%',
-							display: 'flex',
-							justifyContent: 'center',
-							alignItems: 'center',
-							pt: 2,
-							pb: 2,
-						}}
-					>
-						<TextField
-							label="Número Projeto Alfanumérico"
-							size="small"
-							sx={{
-								flex: 0.2,
-								right: 258,
-							}}
-							onChange={(event) =>
-								setProjectAlphanumericNumber(
-									event.currentTarget.value,
-								)
-							}
-							value={projectAlphanumericNumber}
-						/>
-					</Box>
-
-					<Box
-						sx={{
-							width: '100%',
-							display: 'flex',
-							justifyContent: 'center',
 							alignItems: 'center',
 							flexDirection: 'column',
-							gap: 4,
-							pt: 3,
-							pb: 3,
 						}}
 					>
-						<TextField
-							label="Descrição da Obra"
-							size="small"
-							fullWidth
-							onChange={(event) =>
-								setWorkDescription(event.currentTarget.value)
-							}
-							value={workDescription}
-						/>
-						<TextField
-							label="Local da Obra"
-							size="small"
-							fullWidth
-							onChange={(event) =>
-								setWorkSite(event.currentTarget.value)
-							}
-							value={workSite}
-						/>
+						<Box
+							sx={{
+								width: '100%',
+								display: 'flex',
+								justifyContent: 'space-evenly',
+								alignItems: 'center',
+								pt: 2,
+								pb: 2,
+							}}
+						>
+							<TextField
+								label="Número Projeto"
+								size="small"
+								sx={{
+									flex: 0.2,
+								}}
+								value={user.projects.length + 1}
+							/>
 
-						<TextField
-							size="small"
-							type="date"
-							sx={{
-								alignSelf: 'flex-start',
-							}}
-							onChange={(event) =>
-								setReleaseDate(event.currentTarget.value)
-							}
-							value={releaseDate || ''}
-						/>
-
-						<TextField
-							label="Data Início"
-							size="small"
-							type="date"
-							sx={{
-								alignSelf: 'flex-start',
-							}}
-							onChange={(event) =>
-								setInitialDate(event.currentTarget.value)
-							}
-							value={initialDate || ''}
-						/>
-
-						<TextField
-							label="Data Término"
-							size="small"
-							type="date"
-							sx={{
-								alignSelf: 'flex-start',
-							}}
-							onChange={(event) =>
-								setFinalDate(event.currentTarget.value)
-							}
-							value={finalDate || ''}
-						/>
-
-						<TextField
-							label="Texto do Cabeçalho do Relatório da Sondagem"
-							size="small"
-							fullWidth
-							sx={{
-								alignSelf: 'flex-start',
-							}}
-							onChange={(event) =>
-								setHeaderText(event.currentTarget.value)
-							}
-							value={headerText}
-						/>
-						<TextField
-							label="Sondador"
-							size="small"
-							fullWidth
-							sx={{
-								alignSelf: 'flex-start',
-							}}
-							onChange={(event) =>
-								setSondador(event.currentTarget.value)
-							}
-							value={sondador}
-						/>
+							<Box>
+								<TextField
+									label="Cliente"
+									size="small"
+									sx={{
+										flex: 0.1,
+									}}
+									value={user.username}
+								/>
+								<IconButton
+									onClick={() => setDisplayRegister(true)}
+								>
+									<AddIcon />
+								</IconButton>
+							</Box>
+						</Box>
 
 						<Box
 							sx={{
-								width: '50%',
+								width: '100%',
 								display: 'flex',
-								justifyContent: 'space-around',
+								justifyContent: 'center',
 								alignItems: 'center',
+								pt: 2,
+								pb: 2,
 							}}
 						>
-							<Button variant="contained" type="submit">
-								{localStorage.getItem('edit')
-									? 'Atualizar'
-									: 'Confirmar'}
-							</Button>
-							<Button
-								variant="contained"
-								onClick={() => {
-									close();
+							<TextField
+								label="Número Projeto Alfanumérico"
+								size="small"
+								sx={{
+									flex: 0.3,
+									right: 143,
+								}}
+								onChange={(event) =>
+									setProjectAlphanumericNumber(
+										event.currentTarget.value,
+									)
+								}
+								value={projectAlphanumericNumber}
+							/>
+						</Box>
+
+						<Box
+							sx={{
+								width: '100%',
+								display: 'flex',
+								justifyContent: 'center',
+								alignItems: 'center',
+								flexDirection: 'column',
+								gap: 4,
+								pt: 3,
+								pb: 3,
+							}}
+						>
+							<TextField
+								label="Descrição da Obra"
+								size="small"
+								fullWidth
+								onChange={(event) =>
+									setWorkDescription(
+										event.currentTarget.value,
+									)
+								}
+								value={workDescription}
+							/>
+							<TextField
+								label="Local da Obra"
+								size="small"
+								fullWidth
+								onChange={(event) =>
+									setWorkSite(event.currentTarget.value)
+								}
+								value={workSite}
+							/>
+
+							<TextField
+								size="small"
+								type="date"
+								sx={{
+									alignSelf: 'flex-start',
+								}}
+								onChange={(event) =>
+									setReleaseDate(event.currentTarget.value)
+								}
+								value={releaseDate || ''}
+							/>
+
+							<TextField
+								label="Data Início"
+								size="small"
+								type="date"
+								sx={{
+									alignSelf: 'flex-start',
+								}}
+								onChange={(event) =>
+									setInitialDate(event.currentTarget.value)
+								}
+								value={initialDate || ''}
+							/>
+
+							<TextField
+								label="Data Término"
+								size="small"
+								type="date"
+								sx={{
+									alignSelf: 'flex-start',
+								}}
+								onChange={(event) =>
+									setFinalDate(event.currentTarget.value)
+								}
+								value={finalDate || ''}
+							/>
+
+							<TextField
+								label="Texto do Cabeçalho do Relatório da Sondagem"
+								size="small"
+								fullWidth
+								sx={{
+									alignSelf: 'flex-start',
+								}}
+								onChange={(event) =>
+									setHeaderText(event.currentTarget.value)
+								}
+								value={headerText}
+							/>
+							<TextField
+								label="Sondador"
+								size="small"
+								fullWidth
+								sx={{
+									alignSelf: 'flex-start',
+								}}
+								onChange={(event) =>
+									setSondador(event.currentTarget.value)
+								}
+								value={sondador}
+							/>
+
+							<Box
+								sx={{
+									width: '50%',
+									display: 'flex',
+									justifyContent: 'space-around',
+									alignItems: 'center',
 								}}
 							>
-								Cancelar
-							</Button>
+								<Button variant="contained" type="submit">
+									{localStorage.getItem('edit')
+										? 'Atualizar'
+										: 'Confirmar'}
+								</Button>
+								<Button
+									variant="contained"
+									onClick={() => {
+										close();
+									}}
+								>
+									Cancelar
+								</Button>
+							</Box>
 						</Box>
 					</Box>
 				</Box>
+				<Box
+					sx={{
+						width: '100%',
+						display: 'flex',
+						justifyContent: 'center',
+						alignItems: 'center',
+					}}
+				>
+					<Box
+						sx={{
+							width: '100%',
+							height: '100%',
+							background: '#fff',
+						}}
+					>
+						<Register />
+					</Box>
+				</Box>
 			</Box>
-
-			<Register open={displayRegister} setOpen={setDisplayRegister} />
 		</>
 	);
 };

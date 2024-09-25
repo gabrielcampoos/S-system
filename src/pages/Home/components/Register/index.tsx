@@ -15,10 +15,10 @@ import { TransitionProps } from '@mui/material/transitions';
 import CloseIcon from '@mui/icons-material/Close';
 import { useAppSelector } from '../../../../store/hooks';
 
-interface RegisterProps {
-	open: boolean;
-	setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}
+// interface RegisterProps {
+// 	open: boolean;
+// 	setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+// }
 
 const Transition = React.forwardRef(function Transition(
 	props: TransitionProps & {
@@ -29,116 +29,114 @@ const Transition = React.forwardRef(function Transition(
 	return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function Register({ open, setOpen }: RegisterProps) {
+export default function Register() {
 	const [isChecked, setIsChecked] = useState(false);
 
-	const handleClose = () => {
-		setOpen(false);
-	};
+	// const handleClose = () => {
+	// 	setOpen(false);
+	// };
 
 	return (
 		<>
-			<Dialog
+			{/* <Dialog
 				fullScreen
-				open={open}
-				onClose={handleClose}
+				// open={open}
+				// onClose={handleClose}
 				TransitionComponent={Transition}
-			>
-				<Toolbar>
-					<IconButton
+			> */}
+			{/* <Toolbar> */}
+			{/* <IconButton
 						edge="start"
 						color="inherit"
-						onClick={handleClose}
+						// onClick={handleClose}
 						aria-label="close"
 					>
 						<CloseIcon />
-					</IconButton>
-				</Toolbar>
+					</IconButton> */}
+			{/* </Toolbar> */}
+			<Box
+				sx={{
+					width: '100%',
+					display: 'flex',
+					justifyContent: 'center',
+					alignItems: 'center',
+					mt: 30.3,
+				}}
+			>
+				<TextField
+					label="Pesquisar Cliente"
+					size="small"
+					sx={{
+						'fieldset.MuiOutlinedInput-notchedOutline.css-1d3z3hw-MuiOutlinedInput-notchedOutline':
+							{
+								borderColor: '#fff',
+								background: '#fff',
+							},
+					}}
+				/>
+			</Box>
+			<Box
+				sx={{
+					width: '100%',
+					background: '#fff',
+					display: 'flex',
+					justifyContent: 'center',
+					alignItems: 'center',
+					mt: 5,
+					borderBottom: '1px solid #000',
+					borderTop: '1px solid #000',
+					borderLeft: '1px solid #000',
+				}}
+			>
 				<Box
 					sx={{
 						width: '100%',
 						display: 'flex',
-						justifyContent: 'center',
+						justifyContent: 'flex-start',
 						alignItems: 'center',
-						mt: 3,
 					}}
 				>
-					<TextField
-						label="Pesquisar Cliente"
-						size="small"
+					<Typography
 						sx={{
-							'fieldset.MuiOutlinedInput-notchedOutline.css-1d3z3hw-MuiOutlinedInput-notchedOutline':
-								{
-									borderColor: '#fff',
-									background: '#fff',
-								},
+							flex: 0.1,
+							pl: 4.3,
+							borderRight: '1px solid #000',
 						}}
-					/>
+					>
+						Cliente
+					</Typography>
+					<Typography
+						sx={{
+							flex: 1,
+							pl: 5,
+						}}
+					>
+						Nome
+					</Typography>
+				</Box>
+			</Box>
+			<Box
+				sx={{
+					width: '100%',
+					display: 'flex',
+				}}
+			>
+				<Box
+					sx={{
+						width: '70%',
+					}}
+				>
+					<List isChecked={isChecked} setIsChecked={setIsChecked} />
 				</Box>
 				<Box
 					sx={{
-						width: '100%',
-						background: '#fff',
-						display: 'flex',
-						justifyContent: 'center',
-						alignItems: 'center',
-						mt: 5,
-						borderBottom: '1px solid #000',
-						borderTop: '1px solid #000',
+						width: '30%',
 					}}
 				>
-					<Box
-						sx={{
-							width: '100%',
-							display: 'flex',
-							justifyContent: 'flex-start',
-							alignItems: 'center',
-						}}
-					>
-						<Typography
-							sx={{
-								flex: 0.1,
-								pl: 4.3,
-								borderRight: '1px solid #000',
-							}}
-						>
-							Cliente
-						</Typography>
-						<Typography
-							sx={{
-								flex: 1,
-								pl: 5,
-							}}
-						>
-							Nome
-						</Typography>
-					</Box>
+					<FormRegister isChecked={isChecked} />
 				</Box>
-				<Box
-					sx={{
-						width: '100%',
-						display: 'flex',
-					}}
-				>
-					<Box
-						sx={{
-							width: '70%',
-						}}
-					>
-						<List
-							isChecked={isChecked}
-							setIsChecked={setIsChecked}
-						/>
-					</Box>
-					<Box
-						sx={{
-							width: '30%',
-						}}
-					>
-						<FormRegister isChecked={isChecked} />
-					</Box>
-				</Box>
-			</Dialog>
+			</Box>
+			{/* </Dialog> */}
 		</>
 	);
 }
