@@ -35,6 +35,8 @@ interface PollProps {
 	setFinalDate: React.Dispatch<React.SetStateAction<string>>;
 	headerText: string;
 	setHeaderText: React.Dispatch<React.SetStateAction<string>>;
+	sondador: string;
+	setSondador: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export const Poll = ({
@@ -57,13 +59,13 @@ export const Poll = ({
 	setFinalDate,
 	headerText,
 	setHeaderText,
+	sondador,
+	setSondador,
 }: PollProps) => {
 	const [personName, setPersonName] = useState<string[]>([]);
 	const [displayRegister, setDisplayRegister] = useState(false);
 
 	const projectStatus = useAppSelector((state) => state.project.project.id);
-
-	const projectLength = useAppSelector(listAllProjects);
 
 	const user = useAppSelector((state) => state.user);
 
@@ -116,6 +118,7 @@ export const Poll = ({
 				dispatch(listProjects(user.id));
 
 				localStorage.setItem('workDescription', workDescription);
+				localStorage.setItem('sondador', sondador);
 
 				setTimeout(() => {
 					setProjectNumber('');
@@ -344,6 +347,18 @@ export const Poll = ({
 								setHeaderText(event.currentTarget.value)
 							}
 							value={headerText}
+						/>
+						<TextField
+							label="Sondador"
+							size="small"
+							fullWidth
+							sx={{
+								alignSelf: 'flex-start',
+							}}
+							onChange={(event) =>
+								setSondador(event.currentTarget.value)
+							}
+							value={sondador}
 						/>
 
 						<Box

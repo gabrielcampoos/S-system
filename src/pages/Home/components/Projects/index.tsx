@@ -19,6 +19,7 @@ import generatePDF from './components/GeneratePDF';
 import { setLayer } from '../../../../store/modules/Data/dataSlice';
 import Footer from '../../../../assets/images/pdf.png';
 import NA from '../../../../assets/images/na.png';
+import { listHole } from '../../../../store/modules/Hole/holeSlice';
 
 interface ProfundityData {
 	hit1: number;
@@ -53,6 +54,7 @@ export const Projects = () => {
 		Record<number, ProfundityData>
 	>({});
 	const [hatch, setHatch] = useState('');
+	const [sondador, setSondador] = useState('');
 
 	const projectStatus = useAppSelector((state) => state.project.entities);
 	const holeStatus = useAppSelector((state) => state.holeReducer.entities);
@@ -386,6 +388,8 @@ export const Projects = () => {
 					setFinalDate={setFinalDate}
 					headerText={headerText}
 					setHeaderText={setHeaderText}
+					sondador={sondador}
+					setSondador={setSondador}
 					close={handleClose}
 				/>
 			</Box>

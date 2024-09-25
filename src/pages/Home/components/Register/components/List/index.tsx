@@ -30,8 +30,6 @@ export const List = ({ isChecked, setIsChecked }: ListProps) => {
 			} else {
 				setSelectedUserId(null);
 			}
-
-			localStorage.clear();
 		};
 
 	useEffect(() => {

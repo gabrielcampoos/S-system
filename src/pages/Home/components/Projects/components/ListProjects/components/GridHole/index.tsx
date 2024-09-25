@@ -10,8 +10,8 @@ import {
 	createHole,
 	editHole,
 } from '../../../../../../../../store/modules/Hole/holeSlice';
-import { HoleDto, Project } from '../../../../../../../../store/types';
 import { listUsers } from '../../../../../../../../store/modules/User/userSlice';
+import { HoleDto, Project } from '../../../../../../../../store/types';
 
 interface GridHoleProps {
 	close: () => void;
@@ -101,6 +101,21 @@ export const GridHole = ({
 	setPageLines,
 }: GridHoleProps) => {
 	const selectedProject = useAppSelector((state) => state.holeReducer.ids);
+	const selectedDate = useAppSelector((state) => state.project.entities);
+
+	const projectId = localStorage.getItem('idProject')!;
+	const sondador = localStorage.getItem('sondador');
+	const project = selectedDate[projectId];
+
+	if (project) {
+		const initialDate = project.initialDate;
+		const finalDate = project.finalDate;
+
+		setInitialDate(initialDate.toString().split('T')[0]);
+		setFinalDate(finalDate.toString().split('T')[0]);
+		setProber(sondador!);
+	}
+
 	const selectedDescription = useAppSelector((state) =>
 		state.user.projects.find(
 			(description) =>
@@ -109,10 +124,6 @@ export const GridHole = ({
 	);
 
 	useEffect(() => {
-		const workDescription = localStorage.getItem('workDescription');
-		const storedHoleNumber = localStorage.getItem('number');
-		const storedName = localStorage.getItem('name');
-
 		if (selectedDescription) {
 			const descriptionValue = selectedDescription.workDescription;
 			setWorkDescription(descriptionValue as string);
@@ -158,6 +169,8 @@ export const GridHole = ({
 		setTextPoll,
 		setHoleNumber,
 		setName,
+		selectedDescription,
+		selectedProject,
 	]);
 
 	const dispatch = useAppDispatch();

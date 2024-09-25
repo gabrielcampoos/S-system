@@ -97,41 +97,6 @@ export const ListProjects = ({
 
 	const dispatch = useAppDispatch();
 
-	// useEffect(() => {
-	// 	if (selectedHoleId) {
-	// 		dispatch(listHolesByProjectId(selectedHoleId))
-	// 			.unwrap()
-	// 			.then((data) => {
-	// 				if (data.success && data.data) {
-	// 					setSelectHole(data.data);
-	// 				} else {
-	// 					console.error('Dados dos furos não recebidos.');
-	// 				}
-	// 			})
-	// 			.catch((error: any) => {
-	// 				console.error('Erro ao buscar furos:', error);
-	// 			});
-	// 		console.log('ID do projeto selecionado:', selectedHoleId);
-	// 	}
-	// }, [selectedHoleId, dispatch]);
-
-	// useEffect(() => {
-	// 	if (selectedProjectId) {
-	// 		dispatch(listHolesByProjectId(selectedProjectId))
-	// 			.unwrap()
-	// 			.then((data) => {
-	// 				if (data.success && data.data) {
-	// 					setSelectHole(data.data);
-	// 				} else {
-	// 					console.error('Dados dos furos não recebidos.');
-	// 				}
-	// 			})
-	// 			.catch((error) => {
-	// 				console.error('Erro ao buscar furos:', error);
-	// 			});
-	// 	}
-	// }, [selectedProjectId, dispatch]);
-
 	useEffect(() => {
 		if (!selectedProjectId) {
 			setSelectHole([]);
@@ -150,41 +115,6 @@ export const ListProjects = ({
 	const handleOpenHole = () => {
 		setOpenHole((prev) => !prev);
 	};
-
-	// const handleChange =
-	// 	(id: string | undefined) =>
-	// 	(event: React.ChangeEvent<HTMLInputElement>) => {
-	// 		const isChecked = event.target.checked;
-	// 		if (id) {
-	// 			setIsChecked((prevState) => ({
-	// 				...prevState,
-	// 				[id]: isChecked,
-	// 			}));
-	// 			dispatch(getProject(id));
-	// 			localStorage.setItem('idProject', id);
-
-	// 			if (isChecked) {
-	// 				setSelectedProjectId(id);
-	// 				dispatch(listHole(id))
-	// 					.unwrap()
-	// 					.then((data) => {
-	// 						if (data.success && data.data) {
-	// 							setSelectHole(data.data);
-	// 						} else {
-	// 							console.error('Dados dos furos não recebidos.');
-	// 							setSelectHole([]); // Clear the list if there was an issue
-	// 						}
-	// 					})
-	// 					.catch((error) => {
-	// 						console.error('Erro ao buscar furos:', error);
-	// 						setSelectHole([]); // Clear the list if there was an error
-	// 					});
-	// 			} else {
-	// 				setSelectedProjectId(null);
-	// 			}
-	// 		}
-	// 		console.log(isChecked, handleChange);
-	// 	};
 
 	const handleChange =
 		(id: string) => (event: React.ChangeEvent<HTMLInputElement>) => {

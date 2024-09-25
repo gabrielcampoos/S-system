@@ -582,7 +582,7 @@ const generatePDF = ({ data }: GeneratePDFProps) => {
 
 				doc.setFontSize(10);
 				doc.text(
-					depth.toString(),
+					`${depth.toFixed(2).toString()}`,
 					rulerStartX + 28,
 					depthYPosition - 0.5,
 				);
