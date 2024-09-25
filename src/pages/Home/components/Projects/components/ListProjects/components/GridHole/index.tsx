@@ -103,18 +103,26 @@ export const GridHole = ({
 	const selectedProject = useAppSelector((state) => state.holeReducer.ids);
 	const selectedDate = useAppSelector((state) => state.project.entities);
 
-	const projectId = localStorage.getItem('idProject')!;
-	const sondador = localStorage.getItem('sondador');
-	const project = selectedDate[projectId];
+	// Recuperar os valores do localStorage e do estado de Redux
+	useEffect(() => {
+		const projectId = localStorage.getItem('idProject');
+		const sondador = localStorage.getItem('sondador');
 
-	if (project) {
-		const initialDate = project.initialDate;
-		const finalDate = project.finalDate;
+		if (projectId && selectedDate[projectId]) {
+			const project = selectedDate[projectId];
+			const initialDateFromProject = project?.initialDate
+				?.toString()
+				.split('T')[0];
+			const finalDateFromProject = project?.finalDate
+				?.toString()
+				.split('T')[0];
 
-		setInitialDate(initialDate.toString().split('T')[0]);
-		setFinalDate(finalDate.toString().split('T')[0]);
-		setProber(sondador!);
-	}
+			// Inicializa os estados com os valores recuperados
+			setInitialDate(initialDateFromProject || '');
+			setFinalDate(finalDateFromProject || '');
+			setProber(sondador || '');
+		}
+	}, [selectedDate, setFinalDate, setInitialDate, setProber]); // Reexecuta o efeito quando selectedDate for alterados
 
 	const selectedDescription = useAppSelector((state) =>
 		state.user.projects.find(
