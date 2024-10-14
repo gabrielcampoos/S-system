@@ -56,6 +56,9 @@ export const Projects = () => {
 	const [hatch, setHatch] = useState('');
 	const [sondador, setSondador] = useState('');
 
+	const [filterStartDate, setFilterStartDate] = useState<string>('');
+	const [filterEndDate, setFilterEndDate] = useState<string>('');
+
 	const projectStatus = useAppSelector((state) => state.project.entities);
 	const holeStatus = useAppSelector((state) => state.holeReducer.entities);
 	const depthState = useAppSelector((state) => state.layer.currentLayers);
@@ -72,6 +75,23 @@ export const Projects = () => {
 	const hole = holeStatus[idHole || ''];
 	const depth = depthState?.map((depth) => depth.depth);
 	const images = imagesStatus?.map((hatch) => hatch.hatch);
+
+	// Filter projects based on selected dates
+	const filteredProjects = Object.values(projectStatus).filter((proj) => {
+		const projectStartDate = new Date(proj!.initialDate);
+		const projectEndDate = new Date(proj!.finalDate);
+
+		// If both filter dates are set, filter based on them
+		if (filterStartDate && filterEndDate) {
+			const startFilter = new Date(filterStartDate);
+			const endFilter = new Date(filterEndDate);
+			return (
+				projectStartDate >= startFilter && projectEndDate <= endFilter
+			);
+		}
+		return true;
+	});
+
 	const layers = depthState?.map((layer, index) => {
 		// Acessa os valores de profundidade e hits a partir de layerProfundities usando o index
 		const profundityData = layerProfundities[index];
@@ -263,6 +283,22 @@ export const Projects = () => {
 					<TextField label="Filtrar Obra" size="small" />
 					<TextField label="Filtrar Projeto Número" size="small" />
 					<TextField label="Filtrar Local Obra" size="small" />
+					<TextField
+						label="Data Início"
+						type="date"
+						value={filterStartDate}
+						onChange={(e) => setFilterStartDate(e.target.value)}
+						InputLabelProps={{ shrink: true }}
+						size="small"
+					/>
+					<TextField
+						label="Data Fim"
+						type="date"
+						value={filterEndDate}
+						onChange={(e) => setFilterEndDate(e.target.value)}
+						InputLabelProps={{ shrink: true }}
+						size="small"
+					/>
 				</Box>
 
 				<Box
@@ -342,6 +378,8 @@ export const Projects = () => {
 							setIsCheckedHole={setIsCheckedHole}
 							waterLevelTwo={waterLevelTwo}
 							setWaterLevelTwo={setWaterLevelTwo}
+							filterStartDate={filterStartDate}
+							filterEndDate={filterEndDate}
 						/>
 					</Box>
 

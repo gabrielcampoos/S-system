@@ -18,6 +18,7 @@ import {
 } from '../../../../../../store/modules/Project/projectAdapter';
 import {
 	getProject,
+	getProjectsByDate,
 	listProjects,
 	selectProjectById,
 	selectProjectsByUserId,
@@ -52,6 +53,8 @@ interface ListProjectsProps {
 	>;
 	waterLevelTwo: string;
 	setWaterLevelTwo: React.Dispatch<React.SetStateAction<string>>;
+	filterStartDate: string;
+	filterEndDate: string;
 }
 
 export const ListProjects = ({
@@ -61,6 +64,8 @@ export const ListProjects = ({
 	setIsCheckedHole,
 	waterLevelTwo,
 	setWaterLevelTwo,
+	filterStartDate,
+	filterEndDate,
 }: ListProjectsProps) => {
 	const [openHole, setOpenHole] = useState(false);
 	const [selectedHoleId, setSelectedHoleId] = useState<string | null>();
@@ -86,7 +91,7 @@ export const ListProjects = ({
 	const [userId, setUserId] = useState<string>('');
 	const [selectHole, setSelectHole] = useState<HoleState[]>([]);
 	const [holeValues, setHoleValues] = useState<HoleState[]>([]);
-	const [projectsStorage, setProjectsStorage] = useState<Array<Project>>([]);
+	// const [projectsStorage, setProjectsStorage] = useState<Array<Project>>([]);
 	const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
 		null,
 	);
@@ -96,21 +101,23 @@ export const ListProjects = ({
 	const holeStatus = useAppSelector((state) => state.holeReducer.currentHole);
 
 	const dispatch = useAppDispatch();
+	const projectStatus = useAppSelector((state) => state.project.entities);
+	const projectsStorage =
+		useAppSelector((state) => state.project.entities) || {};
+
+	// Transformando projectsStorage de um objeto em um array
+	const projectsArray = Object.values(projectsStorage);
 
 	useEffect(() => {
-		if (!selectedProjectId) {
-			setSelectHole([]);
+		if (filterStartDate && filterEndDate) {
+			dispatch(
+				getProjectsByDate({
+					startDate: filterStartDate,
+					endDate: filterEndDate,
+				}),
+			);
 		}
-	}, [selectedProjectId]);
-
-	useEffect(() => {
-		const userId = selectedUser.id;
-
-		if (userId) {
-			setUserId(userId);
-			dispatch(listProjects(userId));
-		}
-	}, [dispatch, selectedUser.id]);
+	}, [filterStartDate, filterEndDate, dispatch]);
 
 	const handleOpenHole = () => {
 		setOpenHole((prev) => !prev);
@@ -237,137 +244,52 @@ export const ListProjects = ({
 	return (
 		<>
 			<Box
-				sx={{
-					width: '100%',
-					display: 'flex',
-					justifyContent: 'center',
-					alignItems: 'center',
-					mt: 2,
-					border: '1px solid #000',
-					flexDirection: 'column',
-				}}
+				sx={{ width: '100%', display: 'flex', flexDirection: 'column' }}
 			>
 				<Box
 					sx={{
-						width: '100%',
 						display: 'flex',
-						justifyContent: 'center',
-						alignItems: 'center',
+						justifyContent: 'space-between',
+						p: 2,
+						borderBottom: '1px solid #000',
 					}}
 				>
-					<Typography
-						sx={{
-							flex: 1,
-							borderRight: '1px solid #000',
-							textAlign: 'center',
-						}}
-					>
-						Local Projeto
-					</Typography>
-					<Typography
-						sx={{
-							flex: 1,
-							borderRight: '1px solid #000',
-							textAlign: 'center',
-						}}
-					>
-						Número Projeto
-					</Typography>
-					<Typography
-						sx={{
-							flex: 1,
-							borderRight: '1px solid #000',
-							textAlign: 'center',
-						}}
-					>
-						Início
-					</Typography>
-					<Typography
-						sx={{
-							flex: 1,
-							textAlign: 'center',
-						}}
-					>
-						Local Obra
-					</Typography>
+					<Typography>Local Projeto</Typography>
+					<Typography>Número Projeto</Typography>
+					<Typography>Início</Typography>
+					<Typography>Local Obra</Typography>
 				</Box>
-
-				{userId &&
-					selectedUser.projects.map(
-						({ id, workSite, projectNumber, initialDate }) => (
+				{projectsArray.filter((project) => project !== undefined)
+					.length > 0 ? (
+					projectsArray
+						.filter(
+							(project): project is Project =>
+								project !== undefined,
+						) // Filtra para garantir que todos são do tipo Project
+						.map(({ id, workSite, projectNumber, initialDate }) => (
 							<Box
 								key={id}
 								sx={{
-									width: '100%',
 									display: 'flex',
-									justifyContent: 'center',
-									alignItems: 'center',
+									justifyContent: 'space-between',
+									p: 2,
+									borderBottom: '1px solid #000',
 								}}
 							>
-								<Typography
-									sx={{
-										height: '43px',
-										flex: 1,
-										borderRight: '1px solid #000',
-										borderTop: '1px solid #000',
-										textAlign: 'center',
-									}}
-								>
-									{workSite}
-								</Typography>
-								<Typography
-									sx={{
-										height: '43px',
-										flex: 1,
-										borderRight: '1px solid #000',
-										borderTop: '1px solid #000',
-										textAlign: 'center',
-									}}
-								>
-									{projectNumber}
-								</Typography>
-								<Typography
-									sx={{
-										height: '43px',
-										flex: 1,
-										borderRight: '1px solid #000',
-										borderTop: '1px solid #000',
-										textAlign: 'center',
-									}}
-								>
+								<Typography>{workSite}</Typography>
+								<Typography>{projectNumber}</Typography>
+								<Typography>
 									{formatDate(initialDate)}
 								</Typography>
-								<Box
-									sx={{
-										display: 'flex',
-										justifyContent: 'center',
-										alignItems: 'center',
-										flex: 1,
-										borderTop: '1px solid #000',
-									}}
-								>
-									<Typography
-										sx={{
-											height: '42px',
-											flex: 1,
-											textAlign: 'center',
-										}}
-									>
-										{workSite}
-									</Typography>
-									{selectedUser.id !== undefined && (
-										<Checkbox
-											checked={!!isChecked[id!]}
-											onChange={handleChange(id!)}
-											sx={{
-												alignSelf: 'flex-end',
-											}}
-										/>
-									)}
-								</Box>
+								<Checkbox
+									checked={!!isChecked[id!]}
+									onChange={handleChange(id!)}
+								/>
 							</Box>
-						),
-					)}
+						))
+				) : (
+					<Typography>Nenhum projeto encontrado.</Typography> // Mensagem para quando não há projetos
+				)}
 			</Box>
 
 			<Box

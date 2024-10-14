@@ -148,6 +148,48 @@ export const getProject = createAsyncThunk(
 	},
 );
 
+export const getProjectsByDate = createAsyncThunk(
+	'project/getProjectsByDate',
+	async (
+		{ startDate, endDate }: { startDate: string; endDate: string },
+		{ dispatch },
+	) => {
+		try {
+			const response = await serviceApi.post(`/projectsByDate`, {
+				startDate, // Envia startDate no corpo
+				endDate, // Envia endDate no corpo
+			});
+
+			const responseApi = response.data as ResponseListProjectsDto;
+
+			dispatch(
+				showNotification({
+					message: responseApi.message,
+					success: responseApi.success,
+				}),
+			);
+
+			return responseApi.data as Project[]; // Retorna uma lista de projetos
+		} catch (error) {
+			if (error instanceof AxiosError) {
+				const response = error.response
+					?.data as ResponseListProjectsDto;
+
+				dispatch(
+					showNotification({
+						message: response.message,
+						success: response.success,
+					}),
+				);
+
+				return []; // Retorna um array vazio em caso de erro
+			}
+
+			return []; // Retorna um array vazio em caso de erro
+		}
+	},
+);
+
 const projectsAdapter = createEntityAdapter<Project>({
 	selectId: (project) => project.id ?? '',
 	sortComparer: (a, b) => a.projectNumber.localeCompare(b.projectNumber),
@@ -236,6 +278,23 @@ export const projectSlice = createSlice({
 
 		builder.addCase(getProject.rejected, (state) => {
 			state.loading = false;
+		});
+
+		builder.addCase(getProjectsByDate.pending, (state) => {
+			state.loading = true; // Marca o loading como true
+		});
+
+		builder.addCase(getProjectsByDate.fulfilled, (state, action) => {
+			const projects = action.payload as Project[];
+
+			if (projects) {
+				projectsAdapter.setAll(state, projects); // Atualiza o estado com os projetos recebidos
+			}
+			state.loading = false; // Marca o loading como false
+		});
+
+		builder.addCase(getProjectsByDate.rejected, (state) => {
+			state.loading = false; // Marca o loading como false em caso de erro
 		});
 	},
 });
