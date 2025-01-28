@@ -18,6 +18,35 @@ import {
 	UserState,
 } from '../../types';
 
+// Centralização de erro
+const handleError = (error: unknown, dispatch: any, defaultMessage: string) => {
+	if (error instanceof AxiosError) {
+		dispatch(
+			showNotification({
+				message: error.response?.data.message || defaultMessage,
+				success: false,
+			}),
+		);
+		return {
+			success: false,
+			message: error.response?.data.message || defaultMessage,
+		};
+	}
+
+	dispatch(
+		showNotification({
+			message: defaultMessage,
+			success: false,
+		}),
+	);
+
+	return {
+		success: false,
+		message: defaultMessage,
+	};
+};
+
+// Thunks
 export const userCreate = createAsyncThunk(
 	'user/create',
 	async (newUser: User, { dispatch }) => {
@@ -33,25 +62,11 @@ export const userCreate = createAsyncThunk(
 
 			return response.data;
 		} catch (error) {
-			if (error instanceof AxiosError) {
-				const response: ResponseCreateUserDto = {
-					success: error.response?.data.success,
-					message: error.response?.data.message,
-				};
-
-				dispatch(
-					showNotification({
-						message: error.response?.data.message,
-						success: false,
-					}),
-				);
-				return response;
-			}
-
-			return {
-				success: false,
-				message: 'Algo de errado não está certo. A requisição falhou.',
-			};
+			return handleError(
+				error,
+				dispatch,
+				'Erro ao criar o usuário. Por favor, tente novamente.',
+			);
 		}
 	},
 );
@@ -69,28 +84,20 @@ export const userList = createAsyncThunk(
 				}),
 			);
 
-			return response.data;
+			// Ordena os usuários por createdAt (do mais recente ao mais antigo)
+			const sortedData = response.data.data.sort(
+				(a: User, b: User) =>
+					new Date(a.createdAt).getTime() -
+					new Date(b.createdAt).getTime(),
+			);
+
+			return { ...response.data, data: sortedData };
 		} catch (error) {
-			if (error instanceof AxiosError) {
-				const response: ResponseListUsersDto = {
-					success: error.response?.data.success,
-					message: error.response?.data.message,
-				};
-
-				dispatch(
-					showNotification({
-						message: error.response?.data.message,
-						success: false,
-					}),
-				);
-
-				return response;
-			}
-
-			return {
-				success: false,
-				message: 'Algo de errado não está certo. A requisição falhou.',
-			};
+			return handleError(
+				error,
+				dispatch,
+				'Erro ao carregar a lista de usuários. Por favor, tente novamente.',
+			);
 		}
 	},
 );
@@ -110,25 +117,11 @@ export const userDelete = createAsyncThunk(
 
 			return response.data;
 		} catch (error) {
-			if (error instanceof AxiosError) {
-				const response: ResponseDeleteUserDto = {
-					success: error.response?.data.success,
-					message: error.response?.data.message,
-				};
-
-				dispatch(
-					showNotification({
-						message: error.response?.data.message,
-						success: false,
-					}),
-				);
-				return response;
-			}
-
-			return {
-				success: false,
-				message: 'Algo de errado não está certo. A requisição falhou.',
-			};
+			return handleError(
+				error,
+				dispatch,
+				'Erro ao deletar o usuário. Por favor, tente novamente.',
+			);
 		}
 	},
 );
@@ -146,35 +139,26 @@ export const userEdit = createAsyncThunk(
 			);
 			return response.data;
 		} catch (error) {
-			if (error instanceof AxiosError) {
-				const response: ResponseEditUserDto = {
-					success: error.response?.data.success,
-					message: error.response?.data.message,
-				};
-				dispatch(
-					showNotification({
-						message: error.response?.data.message,
-						success: false,
-					}),
-				);
-				return response;
-			}
-			return {
-				success: false,
-				message: 'Algo de errado não está certo. A requisição falhou.',
-			};
+			return handleError(
+				error,
+				dispatch,
+				'Erro ao editar o usuário. Por favor, tente novamente.',
+			);
 		}
 	},
 );
 
+// Adapter para gerenciar o estado dos usuários
 const userAdapter = createEntityAdapter<UserState>({
 	selectId: (state) => state.id,
 });
 
+// Seletores
 export const { selectAll: listAllUsers } = userAdapter.getSelectors(
 	(global: RootState) => global.users,
 );
 
+// Slice
 const userSlice = createSlice({
 	name: 'user',
 	initialState: userAdapter.getInitialState({
@@ -204,12 +188,12 @@ const userSlice = createSlice({
 				return;
 			}
 
-			userAdapter.setAll(state, data);
+			userAdapter.setAll(state, data); // Insere usuários já ordenados
 		});
 
 		builder.addCase(userCreate.pending, (state) => {
 			state.loading = true;
-			state.message = 'Carregando notas.';
+			state.message = 'Criando usuário...';
 		});
 
 		builder.addCase(userCreate.fulfilled, (state, action) => {
@@ -219,7 +203,6 @@ const userSlice = createSlice({
 			state.message = message;
 
 			if (!data?.id) {
-				console.log(action.payload);
 				return;
 			}
 
@@ -228,7 +211,7 @@ const userSlice = createSlice({
 
 		builder.addCase(userCreate.rejected, (state) => {
 			state.loading = false;
-			state.message = 'Cliente final não criado.';
+			state.message = 'Usuário não criado.';
 		});
 
 		builder.addCase(userEdit.pending, (state) => {
@@ -256,7 +239,7 @@ const userSlice = createSlice({
 
 		builder.addCase(userDelete.pending, (state) => {
 			state.loading = true;
-			state.message = 'Excluindo nota...';
+			state.message = 'Excluindo usuário...';
 		});
 		builder.addCase(userDelete.fulfilled, (state, action) => {
 			const { message, success, data } = action.payload;
@@ -269,7 +252,7 @@ const userSlice = createSlice({
 		});
 		builder.addCase(userDelete.rejected, (state) => {
 			state.loading = false;
-			state.message = 'Nota não excluida.';
+			state.message = 'Usuário não excluído.';
 		});
 	},
 });

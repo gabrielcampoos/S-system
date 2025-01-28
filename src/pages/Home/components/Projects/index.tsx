@@ -202,6 +202,8 @@ export const Projects = () => {
 		}, 3000);
 	};
 
+	console.log(project);
+
 	//Gerar PDF
 	const handleGeneratePDF = () => {
 		const rawCota = hole!.quota.trim(); // Remove espaços ao redor
@@ -250,7 +252,7 @@ export const Projects = () => {
 			printSpt: printSpt,
 		};
 
-		console.log(project);
+		console.log('oi');
 
 		generatePDF({
 			data: data,

@@ -6,4 +6,5 @@ export interface UserState {
 	username: string;
 	projects: Project[];
 	loading: boolean;
+	createdAt: Date;
 }

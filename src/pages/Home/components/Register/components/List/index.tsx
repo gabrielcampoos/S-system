@@ -7,7 +7,6 @@ import {
 } from '../../../../../../store/modules/User/userAdapter';
 import { useEffect, useState } from 'react';
 import { getUser } from '../../../../../../store/modules/User/userSlice';
-import { listProjects } from '../../../../../../store/modules/Project/projectSlice';
 
 interface ListProps {
 	isChecked: boolean;
@@ -17,10 +16,12 @@ interface ListProps {
 export const List = ({ isChecked, setIsChecked }: ListProps) => {
 	const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
+	// Seleciona os usuários do Redux
 	const selectUser = useAppSelector(listAllUsers);
 
 	const dispatch = useAppDispatch();
 
+	// Gerencia a seleção do usuário pelo ID
 	const handleChange =
 		(id: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
 			const checked = event.target.checked;
@@ -32,15 +33,23 @@ export const List = ({ isChecked, setIsChecked }: ListProps) => {
 			}
 		};
 
+	// Faz o dispatch para listar os usuários ao montar o componente
 	useEffect(() => {
 		dispatch(userList());
 	}, [dispatch]);
 
+	// Carrega o usuário selecionado
 	useEffect(() => {
 		if (selectedUserId) {
 			dispatch(getUser(selectedUserId));
 		}
 	}, [selectedUserId, dispatch]);
+
+	// Ordena os usuários por createdAt (mais recente para mais antigo)
+	const orderedUsers = [...selectUser].sort(
+		(a, b) =>
+			new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+	);
 
 	return (
 		<Box
@@ -54,7 +63,7 @@ export const List = ({ isChecked, setIsChecked }: ListProps) => {
 				borderLeft: '1px solid #000',
 			}}
 		>
-			{selectUser.map((user) => (
+			{orderedUsers.map((user, index) => (
 				<Box
 					key={user.id}
 					sx={{
@@ -65,6 +74,7 @@ export const List = ({ isChecked, setIsChecked }: ListProps) => {
 						borderBottom: '1px solid #000',
 					}}
 				>
+					{/* Índice do usuário */}
 					<Typography
 						sx={{
 							flex: 0.16,
@@ -74,8 +84,10 @@ export const List = ({ isChecked, setIsChecked }: ListProps) => {
 							pb: 1,
 						}}
 					>
-						{user.id?.slice(0, 1)}
+						{index + 1}
 					</Typography>
+
+					{/* Nome do usuário */}
 					<Typography
 						sx={{
 							flex: 1,
@@ -86,6 +98,8 @@ export const List = ({ isChecked, setIsChecked }: ListProps) => {
 					>
 						{user.username}
 					</Typography>
+
+					{/* Checkbox de seleção */}
 					<Checkbox
 						checked={selectedUserId === user.id}
 						onChange={handleChange(user.id)}

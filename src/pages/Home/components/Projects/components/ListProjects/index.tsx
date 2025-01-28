@@ -259,9 +259,10 @@ export const ListProjects = ({
 					<Typography>Início</Typography>
 					<Typography>Local Obra</Typography>
 				</Box>
-				{projectsArray.filter((project) => project !== undefined)
-					.length > 0 ? (
-					projectsArray
+				{selectedUser.projects.filter(
+					(project) => project !== undefined,
+				).length > 0 ? (
+					selectedUser.projects
 						.filter(
 							(project): project is Project =>
 								project !== undefined,
